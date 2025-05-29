@@ -32,7 +32,7 @@ CROP_PRICES = {
     "Starfruit": 7500,
     "Moonflower": 6000,
     "Moonglow": 9000,
-    "Blood Banana": 12000,
+    "Blood Banana": 12430,
     "Moon Melon": 15000,
     "Beanstalk": 18000,
     "Moon Mango": 35000,
