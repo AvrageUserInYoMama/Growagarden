@@ -1,7 +1,7 @@
 import streamlit as st
 
 CROP_PRICES = {
-    "Carrot": 20,
+    "Carrot": 30,
     "Strawberry": 90,
     "Blueberry": 40,
     "Orange Tulip": 750,
@@ -38,8 +38,8 @@ CROP_PRICES = {
 
 # Price per kilogram for each crop
 PRICE_PER_KG = {
-    "Carrot": 70,
-    "Strawberry": 60,
+    "Carrot": 90,
+    "Strawberry": 80,
     "Blueberry": 120,
     "Orange Tulip": 17000,
     "Tomato": 60,
@@ -69,8 +69,8 @@ PRICE_PER_KG = {
     "Starfruit": 5611,
     "Moonflower": 4000,
     "Moonglow": 3400,
-    "Blood Banana": 40,
-    "Moon Melon": 90,
+    "Blood Banana": 70,
+    "Moon Melon": 130,
 }
 
 # Mutation multipliers
