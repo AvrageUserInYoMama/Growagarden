@@ -1,4 +1,3 @@
-# Grow a Garden Trade Calculator (Improved UI & Logic)
 import streamlit as st
 import random
 
@@ -102,7 +101,7 @@ MUTATION_MULTIPLIERS = {
 
 # === Session State Init ===
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = {}  # changed to dict keyed by trade code
 if "trades" not in st.session_state:
     st.session_state.trades = {}
 
@@ -180,6 +179,8 @@ elif mode == "Trading Mode":
             if st.button("Join Trade"):
                 if join_code in st.session_state.trades:
                     st.success("Joined trade!")
+                    if join_code not in st.session_state.messages:
+                        st.session_state.messages[join_code] = []
                 else:
                     st.error("Invalid code")
 
@@ -213,22 +214,19 @@ elif mode == "Trading Mode":
     st.write(f"Your Offer Value: ₲{your_val:.2f}")
     st.write(f"Their Offer Value: ₲{their_val:.2f}")
 
-    st.subheader("💬 Trade Messaging")
-
-    new_msg = st.text_input("Send a message")
-    
-    # Messaging and forced rerun workaround
-    if st.button("Send Message", key="send_msg_btn"):
-        if new_msg.strip():
-            if join_code in st.session_state.trades:
-                st.session_state.trades[join_code]["messages"].append(new_msg.strip())
-                # Force UI refresh workaround
-                st.experimental_set_query_params(refresh=random.randint(0, 10000))
-
-    if join_code in st.session_state.trades:
-        for msg in st.session_state.trades[join_code]["messages"]:
+    # Show existing messages for the current trade
+    if join_code in st.session_state.messages:
+        st.subheader("💬 Trade Messaging")
+        for msg in st.session_state.messages[join_code]:
             st.write(f"🗨️ {msg}")
-    else:
-        st.info("Join a trade to see messages.")
 
+        new_msg = st.text_input("Send a message", key="new_msg_input")
+
+        if st.button("Send Message", key="send_msg_btn"):
+            if new_msg.strip():
+                st.session_state.messages[join_code].append(new_msg.strip())
+                # Force UI refresh workaround with st.query_params (replacement of experimental_set_query_params)
+                st.query_params = {"refresh": random.randint(0, 10000)}
+    else:
+        st.info("Join a trade to send messages.")
 
