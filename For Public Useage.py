@@ -131,7 +131,7 @@ st.subheader(f"Total Value: ₵{total_value:,.2f}")
 
 # Disclaimers and credits
 st.markdown("---")
-st.markdown("🔹 **Not Affiliated With _The Garden Game_ or its developers. This is a fan-made tool.**")
+st.markdown("🔹 **Not Affiliated With _The Garden Game_ or  the grow a garden developers. This is a fan-made tool.**")
 st.markdown("🔹 **These Prices Are A Very Rough Estimate**")
 st.markdown("🔹 **Made by Gregothey.**")
 st.markdown("---")
