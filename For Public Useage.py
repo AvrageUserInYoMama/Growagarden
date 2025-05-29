@@ -74,7 +74,6 @@ for combo, result in STACKABLE_MUTATIONS.items():
         mutations_to_apply.add(result)
 
 # Calculate
-alculate
 base_price = CROP_PRICES.get(crop, 0)
 final_multiplier = 0  # Initialize to 0 for adding mutation values
 for mutation in mutations_to_apply:
