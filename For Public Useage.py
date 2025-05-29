@@ -74,17 +74,16 @@ for combo, result in STACKABLE_MUTATIONS.items():
         mutations_to_apply.add(result)
 
 # Calculate
-base_price = CROP_PRICES.get(crop, 1)
-final_multiplier = 1  # Initialize with 0 for addition
+base_price = CROP_PRICES.get(crop, 0)
+total_mutation_value = 0  # Initialize with 0 for addition
 for mutation in mutations_to_apply:
-    final_multiplier += MUTATION_MULTIPLIERS.get(mutation, 1)  # Add the mutation value
+    total_mutation_value += MUTATION_MULTIPLIERS.get(mutation, 0)  # Add the mutation value
 
-total_value = base_price + final_multiplier  # Calculate the total value
+total_value = base_price * (1 + total_mutation_value)  # Multiply the base price by the total mutation value
 
 st.write(f"Base Price: {base_price}")
-st.write(f"Mutation Value: {final_multiplier}")
+st.write(f"Total Mutation Value: {total_mutation_value}")
 st.write(f"Total Value: {total_value}")
-final_price = base_price + final_multiplier
 
 st.subheader(f"Final Price: {final_price:,}₵")
 st.markdown("---")
