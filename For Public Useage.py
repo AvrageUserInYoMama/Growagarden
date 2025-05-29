@@ -2,19 +2,83 @@ import streamlit as st
 import random
 from datetime import datetime
 
-# --- Data (same as before) ---
+# Data from your original code (shortened for brevity)
 CROP_PRICES = {
-    # ... same crop price dictionary ...
     "Carrot": 30,
     "Strawberry": 90,
-    # (you can paste all your prices here)
+    "Blueberry": 40,
+    "Orange Tulip": 750,
+    "Tomato": 80,
+    "Corn": 100,
+    "Daffodil": 60,
+    "Raspberry": 1500,
+    "Pear": 2000,
+    "Pineapple": 3000,
+    "Peach": 100,
+    "Apple": 375,
+    "Grape": 10000,
+    "Venus Fly Trap": 15000,
+    "Mango": 6500,
+    "Dragon Fruit": 4750,
+    "Cursed Fruit": 50000,
+    "Soul Fruit": 10500,
+    "Candy Blossom": 100000,
+    "Lotus": 20000,
+    "Durian": 4500,
+    "Bamboo": 1200,
+    "Coconut": 2500,
+    "Pumpkin": 1000,
+    "Watermelon": 1200,
+    "Cactus": 3000,
+    "Passionfruit": 8000,
+    "Pepper": 14000,
+    "Starfruit": 7500,
+    "Moonflower": 6000,
+    "Moonglow": 9000,
+    "Blood Banana": 1200,
+    "Moon Melon": 15000,
+    "Beanstalk": 18000,
+    "Moon Mango": 36000,
 }
+
 PRICE_PER_KG = {
-    # ... same price per kg dictionary ...
     "Carrot": 100,
     "Strawberry": 80,
-    # (you can paste all your prices here)
+    "Blueberry": 120,
+    "Orange Tulip": 17000,
+    "Tomato": 60,
+    "Corn": 76,
+    "Daffodil": 60,
+    "Raspberry": 60,
+    "Pear": 77,
+    "Pineapple": 750,
+    "Peach": 90,
+    "Apple": 77.57,
+    "Grape": 3300,
+    "Venus Fly Trap": 1324,
+    "Mango": 510,
+    "Dragon Fruit": 70,
+    "Cursed Fruit": 100,
+    "Soul Fruit": 77,
+    "Candy Blossom": 3900,
+    "Lotus": 435,
+    "Durian": 660,
+    "Bamboo": 1051,
+    "Coconut": 50,
+    "Pumpkin": 60,
+    "Watermelon": 80,
+    "Cactus": 1110,
+    "Passionfruit": 1400,
+    "Pepper": 1850,
+    "Starfruit": 5611,
+    "Moonflower": 4000,
+    "Moonglow": 3400,
+    "Blood Banana": 4600,
+    "Moon Melon": 130,
+    "Beanstalk": 2344,
+    "Moon Mango": 2277,
 }
+
 MUTATION_MULTIPLIERS = {
     "Wet": 2,
     "Chilled": 2,
@@ -36,169 +100,189 @@ STACKABLE_MUTATIONS = {
     frozenset(["Wet", "Chilled"]): "Frozen",
 }
 
-# --- Helper functions (same) ---
-def calculate_value(crop, weight, base_price, mutations, method):
+# Helper functions
+def calculate_item_value(crop, weight, base_price, mutations, method):
     mutations_to_apply = set(mutations)
     for combo, result in STACKABLE_MUTATIONS.items():
         if combo.issubset(mutations_to_apply):
             mutations_to_apply.difference_update(combo)
             mutations_to_apply.add(result)
-    base = base_price if method == "Base Price" else PRICE_PER_KG.get(crop, 0) * weight
+    if method == "Base Price":
+        base = base_price
+    else:
+        base = PRICE_PER_KG.get(crop, 0) * weight
     final_multiplier = sum(MUTATION_MULTIPLIERS.get(m, 0) for m in mutations_to_apply)
     return base * (1 + final_multiplier)
 
-def trade_value_from_inputs(offers):
+def calculate_trade_total(offers):
     total = 0.0
-    for offer in offers:
-        if offer["use_custom"]:
-            base = offer["custom_price"]
+    for item in offers:
+        if item["use_custom"]:
+            val = item["custom_price"]
         else:
-            if offer["method"] == "Base Price":
-                base = CROP_PRICES.get(offer["crop"], 0)
-            else:
-                base = PRICE_PER_KG.get(offer["crop"], 0) * offer["weight"]
-        final_multiplier = sum(MUTATION_MULTIPLIERS.get(m, 0) for m in offer["mutations"])
-        total += base * (1 + final_multiplier)
+            val = calculate_item_value(
+                item["crop"], item["weight"], item["base_price"], item["mutations"], item["method"]
+            )
+        total += val
     return total
 
-# --- Streamlit app start ---
+# Streamlit UI start
 
-st.title("Grow a Garden Crop Value Calculator with Trading Mode and Chat")
+st.title("Grow a Garden Crop Value Calculator & Trading Mode with Chat")
 
 if "trades" not in st.session_state:
     st.session_state.trades = {}
 
+if "roblox_username" not in st.session_state:
+    st.session_state.roblox_username = ""
+
+if not st.session_state.roblox_username:
+    st.warning("Please enter your Roblox username to start trading.")
+    username = st.text_input("Enter your Roblox username:", key="username_input")
+    if username.strip():
+        st.session_state.roblox_username = username.strip()
+        st.experimental_rerun()
+    st.stop()
+
+st.markdown(f"**Logged in as Roblox user:** {st.session_state.roblox_username}")
+
 trading_mode = st.checkbox("Enable Trading Mode")
 
 if not trading_mode:
-    st.write("Trading Mode is off. Use this mode to calculate crop value.")
-    # Put your normal calculator here if you want
+    st.write("Trading mode is off. Use this mode to calculate crop value.")
+    crop = st.selectbox("Select a Crop", list(CROP_PRICES.keys()))
+    weight = st.number_input("Enter Weight (kg)", min_value=0.0, format="%.2f")
+    base_price_input = st.number_input("Or Base Price (₵)", min_value=0.0, format="%.2f", value=0.0)
+    selected_mutations = st.multiselect("Select Mutation(s)", list(MUTATION_MULTIPLIERS.keys()))
+    method = "Base Price" if base_price_input > 0 else "Weight-based"
+    total_value = calculate_item_value(crop, weight, base_price_input, selected_mutations, method)
+    st.subheader(f"Total Value: ₵{total_value:,.2f}")
 else:
     st.header("Trading Mode")
 
-    # Your Offer input (simplified for demo)
+    # Function for input for one trade item (for reuse)
+    def trade_item_input(prefix):
+        use_custom = st.checkbox(f"Use custom price and name for {prefix} item?", key=f"{prefix}_use_custom")
+        if use_custom:
+            custom_name = st.text_input(f"{prefix} Custom Item Name", key=f"{prefix}_custom_name")
+            custom_price = st.number_input(f"{prefix} Custom Item Price (₵)", min_value=0.0, format="%.2f", key=f"{prefix}_custom_price")
+            return {
+                "use_custom": True,
+                "custom_name": custom_name if custom_name else "Custom Item",
+                "custom_price": custom_price,
+                "crop": "",
+                "weight": 0.0,
+                "base_price": 0.0,
+                "mutations": [],
+                "method": "Base Price",
+            }
+        else:
+            crop = st.selectbox(f"{prefix} Crop", list(CROP_PRICES.keys()), key=f"{prefix}_crop")
+            weight = st.number_input(f"{prefix} Weight (kg)", min_value=0.0, format="%.2f", key=f"{prefix}_weight")
+            base_price = st.number_input(f"{prefix} Base Price (₵, 0 to ignore)", min_value=0.0, format="%.2f", key=f"{prefix}_base_price")
+            mutations = st.multiselect(f"{prefix} Mutations", list(MUTATION_MULTIPLIERS.keys()), key=f"{prefix}_mutations")
+            method = "Base Price" if base_price > 0 else "Weight-based"
+            return {
+                "use_custom": False,
+                "custom_name": "",
+                "custom_price": 0.0,
+                "crop": crop,
+                "weight": weight,
+                "base_price": base_price,
+                "mutations": mutations,
+                "method": method,
+            }
+
+    st.subheader("Your Offer")
     your_offers = []
-    for i in range(2):  # smaller for demo
-        st.markdown(f"### Your Offer Item {i+1}")
-        use_custom = st.checkbox(f"Use custom price for item {i+1}?", key=f"your_custom_{i}")
-        if use_custom:
-            custom_name = st.text_input(f"Custom Item Name {i+1}", key=f"your_custom_name_{i}")
-            custom_price = st.number_input(f"Custom Price {i+1}", min_value=0.0, format="%.2f", key=f"your_custom_price_{i}")
-            weight = 0.0
-            mutations = []
-            crop_name = custom_name if custom_name else "Custom Item"
-            method = "Base Price"
-        else:
-            crop_name = st.selectbox(f"Select Crop {i+1}", list(CROP_PRICES.keys()), key=f"your_crop_{i}")
-            weight = st.number_input(f"Weight (kg) {i+1}", min_value=0.0, format="%.2f", key=f"your_weight_{i}")
-            base_price_input = st.number_input(f"Or Base Price (0 to ignore) {i+1}", min_value=0.0, format="%.2f", value=0.0, key=f"your_base_price_{i}")
-            mutations = st.multiselect(f"Select Mutations {i+1}", list(MUTATION_MULTIPLIERS.keys()), key=f"your_mutations_{i}")
-            method = "Base Price" if base_price_input > 0 else "Weight-based"
-            custom_price = 0.0
+    for i in range(3):
+        st.markdown(f"### Item {i+1}")
+        your_offers.append(trade_item_input(f"Your_{i}"))
 
-        your_offers.append({
-            "crop": crop_name,
-            "weight": weight,
-            "base_price": base_price_input if not use_custom else custom_price,
-            "mutations": mutations,
-            "method": method,
-            "use_custom": use_custom,
-            "custom_price": custom_price,
-        })
-
-    # Their Offer input (same simplified)
+    st.subheader("Their Offer")
     their_offers = []
-    for i in range(2):
-        st.markdown(f"### Their Offer Item {i+1}")
-        use_custom = st.checkbox(f"Use custom price for their item {i+1}?", key=f"their_custom_{i}")
-        if use_custom:
-            custom_name = st.text_input(f"Their Custom Item Name {i+1}", key=f"their_custom_name_{i}")
-            custom_price = st.number_input(f"Their Custom Price {i+1}", min_value=0.0, format="%.2f", key=f"their_custom_price_{i}")
-            weight = 0.0
-            mutations = []
-            crop_name = custom_name if custom_name else "Custom Item"
-            method = "Base Price"
-        else:
-            crop_name = st.selectbox(f"Their Crop {i+1}", list(CROP_PRICES.keys()), key=f"their_crop_{i}")
-            weight = st.number_input(f"Their Weight (kg) {i+1}", min_value=0.0, format="%.2f", key=f"their_weight_{i}")
-            base_price_input = st.number_input(f"Their Base Price (0 to ignore) {i+1}", min_value=0.0, format="%.2f", value=0.0, key=f"their_base_price_{i}")
-            mutations = st.multiselect(f"Their Mutations {i+1}", list(MUTATION_MULTIPLIERS.keys()), key=f"their_mutations_{i}")
-            method = "Base Price" if base_price_input > 0 else "Weight-based"
-            custom_price = 0.0
+    for i in range(3):
+        st.markdown(f"### Item {i+1}")
+        their_offers.append(trade_item_input(f"Their_{i}"))
 
-        their_offers.append({
-            "crop": crop_name,
-            "weight": weight,
-            "base_price": base_price_input if not use_custom else custom_price,
-            "mutations": mutations,
-            "method": method,
-            "use_custom": use_custom,
-            "custom_price": custom_price,
-        })
+    your_total = calculate_trade_total(your_offers)
+    their_total = calculate_trade_total(their_offers)
 
-    your_total = trade_value_from_inputs(your_offers)
-    their_total = trade_value_from_inputs(their_offers)
+    st.markdown(f"**Your Offer Total Value:** ₵{your_total:,.2f}")
+    st.markdown(f"**Their Offer Total Value:** ₵{their_total:,.2f}")
 
-    st.subheader(f"Your Offer Total Value: ₵{your_total:,.2f}")
-    st.subheader(f"Their Offer Total Value: ₵{their_total:,.2f}")
+    # Generate or Load trade
+    st.markdown("---")
+    st.subheader("Trade Session")
 
-    # Trade ID & message system
-    st.header("Share Your Offer")
+    col1, col2 = st.columns(2)
 
-    if st.button("Generate Trade ID"):
-        trade_id = str(random.randint(10000000, 99999999))
-        # Initialize trade data with chat history
-        st.session_state.trades[trade_id] = {
-            "your_offers": your_offers,
-            "your_total": your_total,
-            "their_offers": their_offers,
-            "their_total": their_total,
-            "chat": [],  # list of messages: dict with sender, text, time
-        }
-        st.session_state.generated_trade_id = trade_id
+    with col1:
+        if st.button("Generate New Trade ID"):
+            trade_id = str(random.randint(1000000000, 9999999999))
+            st.session_state.trades[trade_id] = {
+                "your_offers": your_offers,
+                "their_offers": their_offers,
+                "your_total": your_total,
+                "their_total": their_total,
+                "chat": [],
+                "users": [st.session_state.roblox_username],
+            }
+            st.session_state.trade_id = trade_id
+            st.success(f"New Trade ID generated: {trade_id}")
 
-    if "generated_trade_id" in st.session_state:
-        st.write(f"🆔 Your Trade ID: `{st.session_state.generated_trade_id}`")
-        st.success("Share this Trade ID with your trading partner to chat.")
+    with col2:
+        load_id = st.text_input("Or enter existing Trade ID to join/load", key="load_trade_id")
+        if load_id and load_id in st.session_state.trades:
+            st.session_state.trade_id = load_id
+            if st.session_state.roblox_username not in st.session_state.trades[load_id]["users"]:
+                st.session_state.trades[load_id]["users"].append(st.session_state.roblox_username)
+            st.success(f"Loaded Trade ID: {load_id}")
 
-    st.header("Load Trade & Chat")
+        elif load_id:
+            st.warning("Trade ID not found.")
 
-    load_id = st.text_input("Enter Trade ID to load trade and chat")
+    if "trade_id" in st.session_state:
+        trade_id = st.session_state.trade_id
+        trade_data = st.session_state.trades[trade_id]
+        st.markdown(f"## Trade ID: {trade_id}")
+        st.markdown(f"**Participants:** {', '.join(trade_data['users'])}")
 
-    if load_id in st.session_state.trades:
-        trade = st.session_state.trades[load_id]
-        st.subheader(f"Loaded Trade ID: {load_id}")
-        st.write(f"Your Offer Total: ₵{trade['your_total']:,.2f}")
-        st.write(f"Their Offer Total: ₵{trade['their_total']:,.2f}")
+        # Show offers summary
+        st.markdown("### Offer Summary")
+        def offer_summary(offers):
+            lines = []
+            for i, item in enumerate(offers):
+                if item["use_custom"]:
+                    lines.append(f"{item['custom_name']} at ₵{item['custom_price']:.2f}")
+                else:
+                    lines.append(f"{item['crop']} ({item['weight']}kg, Mutations: {', '.join(item['mutations']) if item['mutations'] else 'None'})")
+            return lines
 
-        # Show chat messages
-        st.markdown("### Chat")
-        for msg in trade["chat"]:
-            time_str = msg["time"].strftime("%H:%M:%S")
-            if msg["sender"] == "You":
-                st.markdown(f"**You [{time_str}]:** {msg['text']}")
-            else:
-                st.markdown(f"**Them [{time_str}]:** {msg['text']}")
+        st.markdown("**Your Offer:**")
+        for line in offer_summary(trade_data["your_offers"]):
+            st.write(f"- {line}")
 
-        # Input new message
-        new_msg = st.text_input("Type your message here", key=f"chat_input_{load_id}")
-        sender_choice = st.radio("Send as:", options=["You", "Them"], horizontal=True, index=0, key=f"sender_radio_{load_id}")
+        st.markdown("**Their Offer:**")
+        for line in offer_summary(trade_data["their_offers"]):
+            st.write(f"- {line}")
 
-        if st.button("Send Message", key=f"send_msg_btn_{load_id}"):
-            if new_msg.strip():
-                trade["chat"].append({
-                    "sender": sender_choice,
-                    "text": new_msg.strip(),
-                    "time": datetime.now(),
-                })
-                st.experimental_rerun()  # refresh to show message immediately
-            else:
-                st.warning("Please type a message before sending.")
+        st.markdown(f"Your Offer Total: ₵{trade_data['your_total']:.2f}")
+        st.markdown(f"Their Offer Total: ₵{trade_data['their_total']:.2f}")
 
-    elif load_id:
-        st.warning("Trade ID not found.")
+        # Chat section
+        st.markdown("---")
+        st.subheader("Trade Chat")
+        if "chat" not in trade_data:
+            trade_data["chat"] = []
+        for msg in trade_data["chat"]:
+            st.markdown(f"**{msg['user']}:** {msg['message']}")
 
-st.markdown("---")
-st.markdown("🔹 Not affiliated with the Garden game developers.")
-st.markdown("🔹 Prices are rough estimates.")
-st.markdown("🔹 Made by Gregothey.")
+        new_msg = st.text_input("Type your message:", key="chat_input")
+        if st.button("Send", key="send_chat_btn") and new_msg.strip():
+            trade_data["chat"].append({
+                "user": st.session_state.roblox_username,
+                "message": new_msg.strip(),
+                "timestamp": datetime.now().isoformat(),
+            })
+            st.experimental_rerun()
