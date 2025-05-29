@@ -52,6 +52,7 @@ MUTATION_MULTIPLIERS = {
     "Rainbow": 50,
     "Celestial": 120,
     "Disco": 125,
+    "Overgrown': 1,
 }
 
 # Stackable mutation rules
@@ -81,3 +82,10 @@ for mutation in mutations_to_apply:
 final_price = base_price * final_multiplier
 
 st.subheader(f"Final Price: ₵{final_price:,}")
+
+# Disclaimers and credits
+st.markdown("---")
+st.markdown("🔹 **Not Affiliated With _The Garden Game_ or its developers. This is a fan-made tool.**")
+st.markdown("🔹 **Prices may vary depending on weight and in-game factors.**")
+st.markdown("🔹 **Made by Gregothey.**")
+st.markdown("---")
