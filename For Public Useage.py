@@ -60,7 +60,7 @@ MUTATION_MULTIPLIERS = {
 }
 
 # === STREAMLIT SETUP ===
-st.set_page_config("🌱 Grow a Garden Trade Calculator", layout="wide")
+st.set_page_config("🌱 Grow a Garden  Calculator", layout="wide")
 
 # === UTILITY FUNCTIONS ===
 def calculate_value(crop, weight, mutation, use_weight, custom_price=None):
