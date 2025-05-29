@@ -1,9 +1,10 @@
+# Grow a Garden Trade Calculator (Improved UI & Logic)
 import streamlit as st
 import random
 
 st.set_page_config(page_title="Grow a Garden Trade Calculator", layout="wide")
 
-# === Full Crop Prices (base price per item) ===
+# === Crop Prices and Mutation Multipliers ===
 CROP_PRICES = {
     "Carrot": 30,
     "Strawberry": 90,
@@ -42,7 +43,6 @@ CROP_PRICES = {
     "Moon Mango": 36000,
 }
 
-# === Price per kilogram ===
 PRICE_PER_KG = {
     "Carrot": 100,
     "Strawberry": 80,
@@ -81,7 +81,6 @@ PRICE_PER_KG = {
     "Moon Mango": 2277,
 }
 
-# === Mutation multipliers ===
 MUTATION_MULTIPLIERS = {
     "Wet": 2,
     "Chilled": 2,
@@ -99,6 +98,9 @@ MUTATION_MULTIPLIERS = {
     "Twisted": 30,
 }
 
+# Additional simpler prices and multipliers from the second snippet
+# You can merge or prioritize these as needed; here we keep the big lists above
+
 # === Session State Init ===
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -106,19 +108,8 @@ if "trades" not in st.session_state:
     st.session_state.trades = {}
 
 # === Utility Functions ===
-
 def calculate_value(crop, weight, mutation, use_weight, custom_price=None):
-    """Calculate value of crop, applying weight and mutation multiplier."""
-    # Determine base price based on calculation mode
-    if use_weight:
-        base_price = PRICE_PER_KG.get(crop, 0)
-    else:
-        base_price = CROP_PRICES.get(crop, 0)
-
-    # Override with custom price if given
-    if custom_price is not None:
-        base_price = custom_price
-
+    base_price = custom_price if custom_price is not None else CROP_PRICES.get(crop, 0)
     mutation_multiplier = MUTATION_MULTIPLIERS.get(mutation, 1)
     return (weight if use_weight else 1) * base_price * mutation_multiplier
 
@@ -140,6 +131,7 @@ def fair_trade_result(your_value, their_value):
 # === Main Interface ===
 st.title("🌱 Grow a Garden Trade Calculator")
 
+# Trading vs Calculator mode
 mode = st.radio("Choose Mode", ["Calculator Mode", "Trading Mode"], horizontal=True)
 
 if mode == "Calculator Mode":
@@ -161,11 +153,7 @@ if mode == "Calculator Mode":
     else:
         weight = 1
 
-    mutation = st.selectbox("Select Mutation", ["None"] + list(MUTATION_MULTIPLIERS.keys()))
-
-    # If mutation = None, multiplier = 1
-    if mutation == "None":
-        mutation = None
+    mutation = st.selectbox("Select Mutation", list(MUTATION_MULTIPLIERS.keys()))
 
     value = calculate_value(item_name, weight, mutation, is_weight, item_price)
     st.success(f"Value of {item_name} = ₲{value:.2f}")
@@ -207,14 +195,12 @@ elif mode == "Trading Mode":
             cols = st.columns([2, 1, 2, 1])
             crop = cols[0].selectbox(f"Crop {prefix}{i}", list(CROP_PRICES.keys()), key=f"crop_{prefix}{i}")
             weight = cols[1].number_input(f"Weight {prefix}{i}", min_value=0.0, step=0.1, key=f"wt_{prefix}{i}")
-            mutation = cols[2].selectbox("Mutation", ["None"] + list(MUTATION_MULTIPLIERS.keys()), key=f"mut_{prefix}{i}")
-            if mutation == "None":
-                mutation = None
+            mut = cols[2].selectbox("Mutation", list(MUTATION_MULTIPLIERS.keys()), key=f"mut_{prefix}{i}")
             if use_custom:
                 custom_price = cols[3].number_input("Custom Price", min_value=0.0, step=0.1, key=f"price_{prefix}{i}")
             else:
                 custom_price = None
-            crops.append((crop, weight, mutation, custom_price))
+            crops.append((crop, weight, mut, custom_price))
         return crops
 
     your_offer = trade_inputs("your")
@@ -228,10 +214,22 @@ elif mode == "Trading Mode":
     st.write(f"Your Offer Value: ₲{your_val:.2f}")
     st.write(f"Their Offer Value: ₲{their_val:.2f}")
 
-    st.subheader("💬 Trade Messaging")
-    new_msg = st.text_input("Send a message")
-    if st.button("Send Message"):
-        if new_msg:
-            st.session_state.messages.append(new_msg)
-    for msg in st.session_state.messages:
-        st.write(f"🗨️ {msg}")
+    # --- Trade Messaging Section ---
+    if join_code in st.session_state.trades:
+        st.success(f"Joined trade with code: {join_code}")
+
+        # Input for new message
+        new_msg = st.text_input("Send a message", key="new_msg")
+
+        if st.button("Send Message", key="send_msg_btn"):
+            if new_msg.strip():
+                st.session_state.trades[join_code]["messages"].append(new_msg.strip())
+                st.experimental_rerun()  # refresh UI to show new message
+
+        st.subheader("💬 Trade Messaging")
+        for msg in st.session_state.trades[join_code]["messages"]:
+            st.write(f"🗨️ {msg}")
+
+    else:
+        if join_code:
+            st.error("Invalid trade code")
