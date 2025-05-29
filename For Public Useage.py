@@ -38,7 +38,6 @@ CROP_PRICES = {
     "Moon Mango": 36000,
 }
 
-# Price per kilogram for each crop
 PRICE_PER_KG = {
     "Carrot": 100,
     "Strawberry": 80,
@@ -75,10 +74,8 @@ PRICE_PER_KG = {
     "Moon Melon": 130,
     "Beanstalk": 2344,
     "Moon Mango": 2277,
-
 }
 
-# Mutation multipliers
 MUTATION_MULTIPLIERS = {
     "Wet": 2,
     "Chilled": 2,
@@ -94,50 +91,102 @@ MUTATION_MULTIPLIERS = {
     "Celestial": 120,
     "Disco": 125,
     "Twisted": 30,
-
 }
 
-# Stackable mutation rules
 STACKABLE_MUTATIONS = {
     frozenset(["Wet", "Chilled"]): "Frozen",
 }
 
-# Streamlit UI
-st.title("Crop value Calculator")
-st.markdown("Know How Valuble A Crop Is Before You Pick It, its  better that way.")
+# --- UI: Crop Calculator ---
+st.title("🌱 Crop Value Calculator")
+st.markdown("Know how valuable a crop is before you pick it!")
 
 crop = st.selectbox("Select a Crop", list(CROP_PRICES.keys()))
 weight = st.number_input("Enter Weight (kg)", min_value=0.0, format="%.2f")
 selected_mutations = st.multiselect("Select Mutation(s)", list(MUTATION_MULTIPLIERS.keys()))
-
-# Choose calculation method
 calculation_method = st.radio("Select Calculation Method", ("Weight-based", "Base Price"))
 
-# Apply stacked mutations (e.g. Wet + Chilled = Frozen)
+# Apply stacked mutations
 mutations_to_apply = set(selected_mutations)
 for combo, result in STACKABLE_MUTATIONS.items():
     if combo.issubset(mutations_to_apply):
         mutations_to_apply.difference_update(combo)
         mutations_to_apply.add(result)
 
-# Calculate
+# Calculate single crop value
 base_price = CROP_PRICES.get(crop, 0)
-final_multiplier = 0  # Initialize to 0 for adding mutation values
-for mutation in mutations_to_apply:
-    final_multiplier += MUTATION_MULTIPLIERS.get(mutation, 0)  # Add the mutation value
+final_multiplier = sum(MUTATION_MULTIPLIERS.get(m, 0) for m in mutations_to_apply)
 
-# Calculate total value based on selected method
 if calculation_method == "Weight-based":
     price_per_kg = PRICE_PER_KG.get(crop, 0)
-    total_value = weight * price_per_kg * (1 + final_multiplier)  # Total value based on weight and mutations
-else:  # Base Price Calculation
-    total_value = base_price * (1 + final_multiplier)  # Total value based on base price and mutations
+    total_value = weight * price_per_kg * (1 + final_multiplier)
+else:
+    total_value = base_price * (1 + final_multiplier)
 
 st.subheader(f"Total Value: ₵{total_value:,.2f}")
 
-# Disclaimers and credits
+# --- Trading Mode ---
 st.markdown("---")
-st.markdown("🔹 **Not Affiliated With _The Garden Game_ or  the grow a garden developers. This is a fan-made tool.**")
-st.markdown("🔹 **These Prices Are A Very Rough Estimate**")
+st.header("💱 Trading Mode")
+enable_trading = st.checkbox("Enable Trading Mode")
+
+def get_trade_input(side, index):
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col1:
+        crop = st.selectbox(f"{side} Crop {index+1}", ["None"] + list(CROP_PRICES.keys()), key=f"{side}_crop_{index}")
+    with col2:
+        weight = st.number_input("Weight", min_value=0.0, format="%.2f", key=f"{side}_weight_{index}")
+    with col3:
+        mutations = st.multiselect("Mutations", list(MUTATION_MULTIPLIERS.keys()), key=f"{side}_mutations_{index}")
+    return crop, weight, mutations
+
+def calculate_crop_value(crop, weight, mutations, method):
+    if crop == "None":
+        return 0
+    mutation_set = set(mutations)
+    for combo, result in STACKABLE_MUTATIONS.items():
+        if combo.issubset(mutation_set):
+            mutation_set.difference_update(combo)
+            mutation_set.add(result)
+    multiplier = sum(MUTATION_MULTIPLIERS.get(m, 0) for m in mutation_set)
+
+    if method == "Weight-based":
+        return weight * PRICE_PER_KG.get(crop, 0) * (1 + multiplier)
+    else:
+        return CROP_PRICES.get(crop, 0) * (1 + multiplier)
+
+if enable_trading:
+    trade_method = st.radio("Trade Value Method", ("Weight-based", "Base Price"))
+
+    st.subheader("🧺 Your Offer")
+    your_total = 0
+    for i in range(3):
+        crop, weight, mutations = get_trade_input("Your", i)
+        your_total += calculate_crop_value(crop, weight, mutations, trade_method)
+
+    st.subheader("🎁 Their Offer")
+    their_total = 0
+    for i in range(3):
+        crop, weight, mutations = get_trade_input("Their", i)
+        their_total += calculate_crop_value(crop, weight, mutations, trade_method)
+
+    st.markdown(f"**Your Total Value:** ₵{your_total:,.2f}")
+    st.markdown(f"**Their Total Value:** ₵{their_total:,.2f}")
+
+    # Determine trade fairness
+    if your_total == 0 and their_total == 0:
+        result = "🧐 No trade inputs yet."
+    elif their_total > your_total * 1.15:
+        result = "✅ You're Winning!"
+    elif your_total > their_total * 1.15:
+        result = "❌ You're Losing!"
+    else:
+        result = "⚖️ Fair Trade"
+
+    st.subheader(f"**Trade Verdict:** {result}")
+
+# --- Footer ---
+st.markdown("---")
+st.markdown("🔹 **Not Affiliated With _The Garden Game_ or Grow a Garden devs.**")
+st.markdown("🔹 **Prices are rough estimates.**")
 st.markdown("🔹 **Made by Gregothey.**")
-st.markdown("---")
