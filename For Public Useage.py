@@ -133,10 +133,3 @@ st.markdown("🔹 **Not Affiliated With _The Garden Game_ or its developers. Thi
 st.markdown("🔹 **These Prices Are A Very Rough Estimate**")
 st.markdown("🔹 **Made by Gregothey.**")
 st.markdown("---")
-```
-
-### Key Changes Made:
-1. **Calculation Method Selection**: Added a radio button to choose between **Weight-based** and **Base Price** calculations.
-2. **Conditional Logic**: Implemented logic to calculate the total value based on the selected method.
-
-This enhancement allows users to choose how they want to calculate the total value, making your tool more versatile and user-friendly! If you have any more features in mind or need further assistance, feel free to ask! 😊
