@@ -38,7 +38,7 @@ CROP_PRICES = {
 
 # Price per kilogram for each crop
 PRICE_PER_KG = {
-    "Carrot": 90,
+    "Carrot": 110,
     "Strawberry": 80,
     "Blueberry": 120,
     "Orange Tulip": 17000,
