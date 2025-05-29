@@ -66,7 +66,7 @@ if mode == "Calculator Mode":
     use_weight = st.radio("Calculation Mode", ["Weight-based", "Base Price"], horizontal=True)
     is_weight = use_weight == "Weight-based"
 
-    if is_weight:
+    if use_custom or is_weight:
         weight = st.number_input("Enter Weight", min_value=0.0, step=0.1)
     else:
         weight = 1
@@ -87,12 +87,11 @@ elif mode == "Trading Mode":
             st.subheader("Trade Setup")
             use_custom = st.checkbox("Enable Custom Items")
             if st.button("Generate Trade Code"):
-                with st.popover("Enter your Roblox Username"):
-                    username = st.text_input("Roblox Username")
-                    if username:
-                        code = str(random.randint(100000, 999999999))
-                        st.session_state.trades[code] = {"user": username, "your_offer": [], "their_offer": []}
-                        st.success(f"Trade Code: {code}")
+                username = st.text_input("Enter your Roblox Username")
+                if username:
+                    code = str(random.randint(100000, 999999999))
+                    st.session_state.trades[code] = {"user": username, "your_offer": [], "their_offer": []}
+                    st.success(f"Trade Code: {code}")
 
         with col2:
             st.text("Enter Trade Code to Join")
@@ -107,20 +106,25 @@ elif mode == "Trading Mode":
             use_weight = st.radio("Calculation", ["Weight-based", "Base Price"], horizontal=True)
             is_weight = use_weight == "Weight-based"
 
+    # Fairness Summary at top
+    your_val, their_val = 0, 0
+    result = fair_trade_result(your_val, their_val)
+    st.markdown(f"### ⚖️ {result}")
+
     st.divider()
 
     def trade_inputs(prefix):
         crops, weights, muts, prices = [], [], [], []
         for i in range(3):
-            with st.columns([2, 1, 2]) as (c1, c2, c3):
-                crop = c1.selectbox(f"Crop {prefix}{i}", list(CROP_PRICES.keys()), key=f"crop_{prefix}{i}")
-                weight = c2.number_input(f"Weight {prefix}{i}", min_value=0.0, step=0.1, key=f"wt_{prefix}{i}")
-                mut = c3.selectbox("Mutations", list(MUTATION_MULTIPLIERS.keys()), key=f"mut_{prefix}{i}")
-                if use_custom:
-                    custom_price = c1.number_input("Custom Price", min_value=0.0, step=0.1, key=f"price_{prefix}{i}")
-                else:
-                    custom_price = None
-                crops.append((crop, weight, mut, custom_price))
+            cols = st.columns([2, 1, 2, 1])
+            crop = cols[0].selectbox(f"Crop {prefix}{i}", list(CROP_PRICES.keys()), key=f"crop_{prefix}{i}")
+            weight = cols[1].number_input(f"Weight {prefix}{i}", min_value=0.0, step=0.1, key=f"wt_{prefix}{i}")
+            mut = cols[2].selectbox("Mutations", list(MUTATION_MULTIPLIERS.keys()), key=f"mut_{prefix}{i}")
+            if use_custom:
+                custom_price = cols[3].number_input("Custom Price", min_value=0.0, step=0.1, key=f"price_{prefix}{i}")
+            else:
+                custom_price = None
+            crops.append((crop, weight, mut, custom_price))
         return crops
 
     your_offer = trade_inputs("your")
@@ -130,8 +134,6 @@ elif mode == "Trading Mode":
     st.divider()
 
     your_val, their_val = summarize_trade(your_offer, their_offer, is_weight)
-
-    # Summary at top
     result = fair_trade_result(your_val, their_val)
     st.markdown(f"### ⚖️ {result}")
 
