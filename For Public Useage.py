@@ -52,7 +52,7 @@ MUTATION_MULTIPLIERS = {
     "Rainbow": 50,
     "Celestial": 120,
     "Disco": 125,
-    "Overgrown": 1,
+    "Overgrown": 1
 }
 
 # Stackable mutation rules
@@ -74,16 +74,19 @@ for combo, result in STACKABLE_MUTATIONS.items():
         mutations_to_apply.add(result)
 
 # Calculate
-base_price = CROP_PRICES.get(crop, 0)
-final_multiplier = 1
+base_price = CROP_PRICES.get(crop, 1)
+final_multiplier = 1  # Initialize with 0 for addition
 for mutation in mutations_to_apply:
-    final_multiplier *= MUTATION_MULTIPLIERS.get(mutation, 1)
+    final_multiplier += MUTATION_MULTIPLIERS.get(mutation, 1)  # Add the mutation value
 
-final_price = base_price * final_multiplier
+total_value = base_price + final_multiplier  # Calculate the total value
 
-st.subheader(f"Final Price: ₵{final_price:,}")
+st.write(f"Base Price: {base_price}")
+st.write(f"Mutation Value: {final_multiplier}")
+st.write(f"Total Value: {total_value}")
+final_price = base_price + final_multiplier
 
-# Disclaimers and credits
+st.subheader(f"Final Price: {final_price:,}₵")
 st.markdown("---")
 st.markdown("🔹 **Not Affiliated With _The Garden Game_ or its developers. This is a fan-made tool.**")
 st.markdown("🔹 **Prices may vary depending on weight and in-game factors.**")
