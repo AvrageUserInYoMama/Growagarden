@@ -79,7 +79,7 @@ total_mutation_value = 0  # Initialize with 0 for addition
 for mutation in mutations_to_apply:
     total_mutation_value += MUTATION_MULTIPLIERS.get(mutation, 0)  # Add the mutation value
 
-total_value = base_price * (1 + total_mutation_value)  # Multiply the base price by the total mutation value
+final_price= base_price * (1 + total_mutation_value)  # Multiply the base price by the total mutation value
 
 st.write(f"Base Price: {base_price}")
 st.write(f"Total Mutation Value: {total_mutation_value}")
