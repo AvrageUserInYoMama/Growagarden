@@ -1,9 +1,4 @@
-To enhance your script with the option to choose between weight-based calculation and base price calculation, we can introduce a radio button that allows users to select their preferred method. Based on the selection, the script will calculate the total value accordingly. Here’s how you can implement this feature:
 
-```python
-import streamlit as st
-
-# Crop base prices
 CROP_PRICES = {
     "Carrot": 20,
     "Strawberry": 90,
