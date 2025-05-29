@@ -39,39 +39,39 @@ CROP_PRICES = {
 
 # Price per kilogram for each crop
 PRICE_PER_KG = {
-    "Carrot": 5,
-    "Strawberry": 10,
-    "Blueberry": 8,
-    "Orange Tulip": 15,
-    "Tomato": 7,
-    "Corn": 6,
-    "Daffodil": 4,
-    "Raspberry": 12,
+    "Carrot": 70,
+    "Strawberry": 60,
+    "Blueberry": 120,
+    "Orange Tulip": 17,000,
+    "Tomato": 60,
+    "Corn": 27,
+    "Daffodil": 60,
+    "Raspberry": 60,
     "Pear": 20,
-    "Pineapple": 25,
-    "Peach": 9,
-    "Apple": 3,
-    "Grape": 30,
-    "Venus Fly Trap": 40,
-    "Mango": 22,
-    "Dragon Fruit": 18,
+    "Pineapple": 750,
+    "Peach": 90,
+    "Apple": 91,
+    "Grape": 3300,
+    "Venus Fly Trap": 1324,
+    "Mango": 510,
+    "Dragon Fruit": 70,
     "Cursed Fruit": 100,
     "Soul Fruit": 35,
-    "Candy Blossom": 200,
-    "Lotus": 50,
-    "Durian": 15,
-    "Bamboo": 5,
-    "Coconut": 10,
-    "Pumpkin": 8,
-    "Watermelon": 12,
-    "Cactus": 20,
-    "Passionfruit": 15,
-    "Pepper": 10,
-    "Starfruit": 25,
-    "Moonflower": 20,
-    "Moonglow": 30,
+    "Candy Blossom": 3900,
+    "Lotus": 435,
+    "Durian": 660,
+    "Bamboo": 1051,
+    "Coconut": 29,
+    "Pumpkin": 60,
+    "Watermelon": 80,
+    "Cactus": 1110,
+    "Passionfruit": 1400,
+    "Pepper": 3811,
+    "Starfruit": 5611,
+    "Moonflower": 4000,
+    "Moonglow": 3400,
     "Blood Banana": 40,
-    "Moon Melon": 50,
+    "Moon Melon": 90,
 }
 
 # Mutation multipliers
@@ -89,7 +89,7 @@ MUTATION_MULTIPLIERS = {
     "Rainbow": 50,
     "Celestial": 120,
     "Disco": 125,
-    "Overgrown": 1,
+    "Twisted": 30,
 }
 
 # Stackable mutation rules
@@ -126,6 +126,6 @@ st.subheader(f"Total Value: ₵{total_value:,.2f}")
 # Disclaimers and credits
 st.markdown("---")
 st.markdown("🔹 **Not Affiliated With _The Garden Game_ or its developers. This is a fan-made tool.**")
-st.markdown("🔹 **Prices may vary depending on weight and in-game factors.**")
+st.markdown("🔹 **These Prices Are A Very Rough Estimate**")
 st.markdown("🔹 **Made by Gregothey.**")
 st.markdown("---")
