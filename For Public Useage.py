@@ -157,4 +157,4 @@ if mode == "Calculator Mode":
     is_weight = use_weight == "Weight-based"
 
     if use_custom or is_weight:
-        weight = st.number_input("Enter Weight", min_
+        weight = st.number_input("Enter Weight", min_)
