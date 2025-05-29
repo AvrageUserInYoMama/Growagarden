@@ -74,7 +74,7 @@ PRICE_PER_KG = {
     "Blood Banana": 4600,
     "Moon Melon": 130,
     "Beanstalk": 2344,
-    "Moon Mango": 2400,
+    "Moon Mango": 2200,
 
 }
 
