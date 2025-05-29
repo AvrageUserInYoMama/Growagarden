@@ -90,7 +90,7 @@ def get_messages(code):
         return conn.execute("SELECT sender, message, time FROM messages WHERE code=? ORDER BY time ASC", (code,)).fetchall()
 
 # === UI ===
-st.title("🌱 Grow a Garden Trade Calculator")
+st.title("🌱 Grow a Garden  Calculator")
 
 mode = st.radio("Choose Mode", ["Calculator Mode", "Trading Mode"], horizontal=True)
 
