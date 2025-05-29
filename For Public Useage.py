@@ -71,10 +71,10 @@ PRICE_PER_KG = {
     "Starfruit": 5611,
     "Moonflower": 4000,
     "Moonglow": 3400,
-    "Blood Banana": 70,
+    "Blood Banana": 3500,
     "Moon Melon": 130,
     "Beanstalk": 2344,
-    "Moon Mango": 1900,
+    "Moon Mango": 1980,
 
 }
 
