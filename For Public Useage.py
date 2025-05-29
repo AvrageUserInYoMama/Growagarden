@@ -34,6 +34,8 @@ CROP_PRICES = {
     "Moonglow": 9000,
     "Blood Banana": 12000,
     "Moon Melon": 15000,
+    "Beanstalk": 18000,
+    "Moon Mango": 23000,
 }
 
 # Price per kilogram for each crop
@@ -71,6 +73,9 @@ PRICE_PER_KG = {
     "Moonglow": 3400,
     "Blood Banana": 70,
     "Moon Melon": 130,
+    "Beanstalk": 2344,
+    "Moon Mango": 665,
+
 }
 
 # Mutation multipliers
@@ -89,6 +94,7 @@ MUTATION_MULTIPLIERS = {
     "Celestial": 120,
     "Disco": 125,
     "Twisted": 30,
+
 }
 
 # Stackable mutation rules
