@@ -101,7 +101,7 @@ MUTATION_MULTIPLIERS = {
 
 # === Session State Init ===
 if "messages" not in st.session_state:
-    st.session_state.messages = {}  # changed to dict keyed by trade code
+    st.session_state.messages = {}  # dict keyed by trade code, each value a list of messages
 if "trades" not in st.session_state:
     st.session_state.trades = {}
 
@@ -179,8 +179,6 @@ elif mode == "Trading Mode":
             if st.button("Join Trade"):
                 if join_code in st.session_state.trades:
                     st.success("Joined trade!")
-                    if join_code not in st.session_state.messages:
-                        st.session_state.messages[join_code] = []
                 else:
                     st.error("Invalid code")
 
@@ -214,19 +212,20 @@ elif mode == "Trading Mode":
     st.write(f"Your Offer Value: ₲{your_val:.2f}")
     st.write(f"Their Offer Value: ₲{their_val:.2f}")
 
-    # Show existing messages for the current trade
-    if join_code in st.session_state.messages:
+    # === Messaging System ===
+    if join_code and join_code in st.session_state.trades:
+        if join_code not in st.session_state.messages:
+            st.session_state.messages[join_code] = []
+
         st.subheader("💬 Trade Messaging")
         for msg in st.session_state.messages[join_code]:
             st.write(f"🗨️ {msg}")
 
         new_msg = st.text_input("Send a message", key="new_msg_input")
-
         if st.button("Send Message", key="send_msg_btn"):
             if new_msg.strip():
                 st.session_state.messages[join_code].append(new_msg.strip())
-                # Force UI refresh workaround with st.query_params (replacement of experimental_set_query_params)
+                # Refresh UI workaround with query_params
                 st.query_params = {"refresh": random.randint(0, 10000)}
     else:
-        st.info("Join a trade to send messages.")
-
+        st.info("Join a trade with a valid trade code to send messages.")
