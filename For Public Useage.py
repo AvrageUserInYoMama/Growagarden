@@ -52,7 +52,7 @@ MUTATION_MULTIPLIERS = {
     "Rainbow": 50,
     "Celestial": 120,
     "Disco": 125,
-    "Overgrown': 1,
+    "Overgrown": 1,
 }
 
 # Stackable mutation rules
