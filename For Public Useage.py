@@ -1,3 +1,6 @@
+To enhance your script with the option to choose between weight-based calculation and base price calculation, we can introduce a radio button that allows users to select their preferred method. Based on the selection, the script will calculate the total value accordingly. Here’s how you can implement this feature:
+
+```python
 import streamlit as st
 
 # Crop base prices
@@ -42,7 +45,7 @@ PRICE_PER_KG = {
     "Carrot": 70,
     "Strawberry": 60,
     "Blueberry": 120,
-    "Orange Tulip": 17,000,
+    "Orange Tulip": 17000,
     "Tomato": 60,
     "Corn": 27,
     "Daffodil": 60,
@@ -104,6 +107,9 @@ crop = st.selectbox("Select a Crop", list(CROP_PRICES.keys()))
 weight = st.number_input("Enter Weight (kg)", min_value=0.0, format="%.2f")
 selected_mutations = st.multiselect("Select Mutation(s)", list(MUTATION_MULTIPLIERS.keys()))
 
+# Choose calculation method
+calculation_method = st.radio("Select Calculation Method", ("Weight-based", "Base Price"))
+
 # Apply stacked mutations (e.g. Wet + Chilled = Frozen)
 mutations_to_apply = set(selected_mutations)
 for combo, result in STACKABLE_MUTATIONS.items():
@@ -117,9 +123,12 @@ final_multiplier = 0  # Initialize to 0 for adding mutation values
 for mutation in mutations_to_apply:
     final_multiplier += MUTATION_MULTIPLIERS.get(mutation, 0)  # Add the mutation value
 
-# Calculate total value based on weight
-price_per_kg = PRICE_PER_KG.get(crop, 0)
-total_value = weight * price_per_kg * (1 + final_multiplier)  # Total value based on weight and mutations
+# Calculate total value based on selected method
+if calculation_method == "Weight-based":
+    price_per_kg = PRICE_PER_KG.get(crop, 0)
+    total_value = weight * price_per_kg * (1 + final_multiplier)  # Total value based on weight and mutations
+else:  # Base Price Calculation
+    total_value = base_price * (1 + final_multiplier)  # Total value based on base price and mutations
 
 st.subheader(f"Total Value: ₵{total_value:,.2f}")
 
@@ -129,3 +138,10 @@ st.markdown("🔹 **Not Affiliated With _The Garden Game_ or its developers. Thi
 st.markdown("🔹 **These Prices Are A Very Rough Estimate**")
 st.markdown("🔹 **Made by Gregothey.**")
 st.markdown("---")
+```
+
+### Key Changes Made:
+1. **Calculation Method Selection**: Added a radio button to choose between **Weight-based** and **Base Price** calculations.
+2. **Conditional Logic**: Implemented logic to calculate the total value based on the selected method.
+
+This enhancement allows users to choose how they want to calculate the total value, making your tool more versatile and user-friendly! If you have any more features in mind or need further assistance, feel free to ask! 😊
