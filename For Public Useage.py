@@ -83,7 +83,7 @@ final_price= base_price * (1 + total_mutation_value)  # Multiply the base price 
 
 st.write(f"Base Price: {base_price}")
 st.write(f"Total Mutation Value: {total_mutation_value}")
-st.write(f"Total Value: {total_value}")
+st.write(f"Total Value: {final_price}")
 
 st.subheader(f"Final Price: {final_price:,}₵")
 st.markdown("---")
