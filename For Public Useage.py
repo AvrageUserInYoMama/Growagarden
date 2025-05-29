@@ -35,7 +35,7 @@ CROP_PRICES = {
     "Blood Banana": 1200,
     "Moon Melon": 15000,
     "Beanstalk": 18000,
-    "Moon Mango": 35000,
+    "Moon Mango": 36000,
 }
 
 # Price per kilogram for each crop
@@ -74,7 +74,7 @@ PRICE_PER_KG = {
     "Blood Banana": 4600,
     "Moon Melon": 130,
     "Beanstalk": 2344,
-    "Moon Mango": 1980,
+    "Moon Mango": 2400,
 
 }
 
