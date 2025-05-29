@@ -43,6 +43,7 @@ CROP_PRICES = {
     "Moon Mango": 36000,
 }
 
+# Price per kilogram for each crop
 PRICE_PER_KG = {
     "Carrot": 100,
     "Strawberry": 80,
@@ -81,6 +82,7 @@ PRICE_PER_KG = {
     "Moon Mango": 2277,
 }
 
+# Mutation multipliers
 MUTATION_MULTIPLIERS = {
     "Wet": 2,
     "Chilled": 2,
@@ -97,9 +99,6 @@ MUTATION_MULTIPLIERS = {
     "Disco": 125,
     "Twisted": 30,
 }
-
-# Additional simpler prices and multipliers from the second snippet
-# You can merge or prioritize these as needed; here we keep the big lists above
 
 # === Session State Init ===
 if "messages" not in st.session_state:
@@ -214,22 +213,22 @@ elif mode == "Trading Mode":
     st.write(f"Your Offer Value: ₲{your_val:.2f}")
     st.write(f"Their Offer Value: ₲{their_val:.2f}")
 
-    # --- Trade Messaging Section ---
-    if join_code in st.session_state.trades:
-        st.success(f"Joined trade with code: {join_code}")
+    st.subheader("💬 Trade Messaging")
 
-        # Input for new message
-        new_msg = st.text_input("Send a message", key="new_msg")
-
-        if st.button("Send Message", key="send_msg_btn"):
-            if new_msg.strip():
+    new_msg = st.text_input("Send a message")
+    
+    # Messaging and forced rerun workaround
+    if st.button("Send Message", key="send_msg_btn"):
+        if new_msg.strip():
+            if join_code in st.session_state.trades:
                 st.session_state.trades[join_code]["messages"].append(new_msg.strip())
-                st.experimental_rerun()  # refresh UI to show new message
+                # Force UI refresh workaround
+                st.experimental_set_query_params(refresh=random.randint(0, 10000))
 
-        st.subheader("💬 Trade Messaging")
+    if join_code in st.session_state.trades:
         for msg in st.session_state.trades[join_code]["messages"]:
             st.write(f"🗨️ {msg}")
-
     else:
-        if join_code:
-            st.error("Invalid trade code")
+        st.info("Join a trade to see messages.")
+
+
