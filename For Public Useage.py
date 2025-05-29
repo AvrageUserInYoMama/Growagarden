@@ -2,105 +2,8 @@ import streamlit as st
 import random
 from datetime import datetime
 
-# Data from your original code (shortened for brevity)
-CROP_PRICES = {
-    "Carrot": 30,
-    "Strawberry": 90,
-    "Blueberry": 40,
-    "Orange Tulip": 750,
-    "Tomato": 80,
-    "Corn": 100,
-    "Daffodil": 60,
-    "Raspberry": 1500,
-    "Pear": 2000,
-    "Pineapple": 3000,
-    "Peach": 100,
-    "Apple": 375,
-    "Grape": 10000,
-    "Venus Fly Trap": 15000,
-    "Mango": 6500,
-    "Dragon Fruit": 4750,
-    "Cursed Fruit": 50000,
-    "Soul Fruit": 10500,
-    "Candy Blossom": 100000,
-    "Lotus": 20000,
-    "Durian": 4500,
-    "Bamboo": 1200,
-    "Coconut": 2500,
-    "Pumpkin": 1000,
-    "Watermelon": 1200,
-    "Cactus": 3000,
-    "Passionfruit": 8000,
-    "Pepper": 14000,
-    "Starfruit": 7500,
-    "Moonflower": 6000,
-    "Moonglow": 9000,
-    "Blood Banana": 1200,
-    "Moon Melon": 15000,
-    "Beanstalk": 18000,
-    "Moon Mango": 36000,
-}
+# ... (keep all your price dictionaries and helper functions here, unchanged)
 
-PRICE_PER_KG = {
-    "Carrot": 100,
-    "Strawberry": 80,
-    "Blueberry": 120,
-    "Orange Tulip": 17000,
-    "Tomato": 60,
-    "Corn": 76,
-    "Daffodil": 60,
-    "Raspberry": 60,
-    "Pear": 77,
-    "Pineapple": 750,
-    "Peach": 90,
-    "Apple": 77.57,
-    "Grape": 3300,
-    "Venus Fly Trap": 1324,
-    "Mango": 510,
-    "Dragon Fruit": 70,
-    "Cursed Fruit": 100,
-    "Soul Fruit": 77,
-    "Candy Blossom": 3900,
-    "Lotus": 435,
-    "Durian": 660,
-    "Bamboo": 1051,
-    "Coconut": 50,
-    "Pumpkin": 60,
-    "Watermelon": 80,
-    "Cactus": 1110,
-    "Passionfruit": 1400,
-    "Pepper": 1850,
-    "Starfruit": 5611,
-    "Moonflower": 4000,
-    "Moonglow": 3400,
-    "Blood Banana": 4600,
-    "Moon Melon": 130,
-    "Beanstalk": 2344,
-    "Moon Mango": 2277,
-}
-
-MUTATION_MULTIPLIERS = {
-    "Wet": 2,
-    "Chilled": 2,
-    "Chocolate": 2,
-    "Moonlit": 2,
-    "Bloodlit": 4,
-    "Plasma": 5,
-    "Frozen": 10,
-    "Golden": 20,
-    "Zombified": 25,
-    "Shocked": 50,
-    "Rainbow": 50,
-    "Celestial": 120,
-    "Disco": 125,
-    "Twisted": 30,
-}
-
-STACKABLE_MUTATIONS = {
-    frozenset(["Wet", "Chilled"]): "Frozen",
-}
-
-# Helper functions
 def calculate_item_value(crop, weight, base_price, mutations, method):
     mutations_to_apply = set(mutations)
     for combo, result in STACKABLE_MUTATIONS.items():
@@ -126,8 +29,6 @@ def calculate_trade_total(offers):
         total += val
     return total
 
-# Streamlit UI start
-
 st.title("Grow a Garden Crop Value Calculator & Trading Mode with Chat")
 
 if "trades" not in st.session_state:
@@ -135,16 +36,6 @@ if "trades" not in st.session_state:
 
 if "roblox_username" not in st.session_state:
     st.session_state.roblox_username = ""
-
-if not st.session_state.roblox_username:
-    st.warning("Please enter your Roblox username to start trading.")
-    username = st.text_input("Enter your Roblox username:", key="username_input")
-    if username.strip():
-        st.session_state.roblox_username = username.strip()
-        st.experimental_rerun()
-    st.stop()
-
-st.markdown(f"**Logged in as Roblox user:** {st.session_state.roblox_username}")
 
 trading_mode = st.checkbox("Enable Trading Mode")
 
@@ -160,7 +51,7 @@ if not trading_mode:
 else:
     st.header("Trading Mode")
 
-    # Function for input for one trade item (for reuse)
+    # Offer inputs (same as before)
     def trade_item_input(prefix):
         use_custom = st.checkbox(f"Use custom price and name for {prefix} item?", key=f"{prefix}_use_custom")
         if use_custom:
@@ -211,7 +102,6 @@ else:
     st.markdown(f"**Your Offer Total Value:** ₵{your_total:,.2f}")
     st.markdown(f"**Their Offer Total Value:** ₵{their_total:,.2f}")
 
-    # Generate or Load trade
     st.markdown("---")
     st.subheader("Trade Session")
 
@@ -219,36 +109,53 @@ else:
 
     with col1:
         if st.button("Generate New Trade ID"):
-            trade_id = str(random.randint(1000000000, 9999999999))
-            st.session_state.trades[trade_id] = {
-                "your_offers": your_offers,
-                "their_offers": their_offers,
-                "your_total": your_total,
-                "their_total": their_total,
-                "chat": [],
-                "users": [st.session_state.roblox_username],
-            }
-            st.session_state.trade_id = trade_id
-            st.success(f"New Trade ID generated: {trade_id}")
+            if not st.session_state.roblox_username:
+                username_input = st.text_input("Enter your Roblox username to generate trade ID:", key="gen_username")
+                if username_input.strip():
+                    st.session_state.roblox_username = username_input.strip()
+                    st.experimental_rerun()
+                else:
+                    st.warning("You must enter a Roblox username to generate a trade ID.")
+            else:
+                trade_id = str(random.randint(1000000000, 9999999999))
+                st.session_state.trades[trade_id] = {
+                    "your_offers": your_offers,
+                    "their_offers": their_offers,
+                    "your_total": your_total,
+                    "their_total": their_total,
+                    "chat": [],
+                    "users": [st.session_state.roblox_username],
+                }
+                st.session_state.trade_id = trade_id
+                st.success(f"New Trade ID generated: {trade_id}")
 
     with col2:
         load_id = st.text_input("Or enter existing Trade ID to join/load", key="load_trade_id")
-        if load_id and load_id in st.session_state.trades:
-            st.session_state.trade_id = load_id
-            if st.session_state.roblox_username not in st.session_state.trades[load_id]["users"]:
-                st.session_state.trades[load_id]["users"].append(st.session_state.roblox_username)
-            st.success(f"Loaded Trade ID: {load_id}")
+        if load_id:
+            if not st.session_state.roblox_username:
+                username_input = st.text_input("Enter your Roblox username to join trade:", key="join_username")
+                if username_input.strip():
+                    st.session_state.roblox_username = username_input.strip()
+                    st.experimental_rerun()
+                else:
+                    st.warning("You must enter a Roblox username to join a trade.")
+            else:
+                if load_id in st.session_state.trades:
+                    st.session_state.trade_id = load_id
+                    if st.session_state.roblox_username not in st.session_state.trades[load_id]["users"]:
+                        st.session_state.trades[load_id]["users"].append(st.session_state.roblox_username)
+                    st.success(f"Loaded Trade ID: {load_id}")
+                else:
+                    st.warning("Trade ID not found.")
 
-        elif load_id:
-            st.warning("Trade ID not found.")
-
+    # Show trade and chat if trade_id set
     if "trade_id" in st.session_state:
         trade_id = st.session_state.trade_id
         trade_data = st.session_state.trades[trade_id]
         st.markdown(f"## Trade ID: {trade_id}")
         st.markdown(f"**Participants:** {', '.join(trade_data['users'])}")
 
-        # Show offers summary
+        # Offer summaries
         st.markdown("### Offer Summary")
         def offer_summary(offers):
             lines = []
@@ -285,4 +192,6 @@ else:
                 "message": new_msg.strip(),
                 "timestamp": datetime.now().isoformat(),
             })
+            # Workaround for rerun
+            st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
             st.experimental_rerun()
