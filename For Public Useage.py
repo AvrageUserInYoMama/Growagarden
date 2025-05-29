@@ -65,7 +65,7 @@ PRICE_PER_KG = {
     "Watermelon": 80,
     "Cactus": 1110,
     "Passionfruit": 1400,
-    "Pepper": 575,
+    "Pepper": 800,
     "Starfruit": 5611,
     "Moonflower": 4000,
     "Moonglow": 3400,
