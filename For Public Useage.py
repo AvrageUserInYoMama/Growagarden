@@ -98,7 +98,7 @@ STACKABLE_MUTATIONS = {
 
 # Streamlit UI
 st.title("Crop value Calculator")
-st.markdown("Know How Valuble A Crop Is Befor Ya Pick It")
+st.markdown("Know How Valuble A Crop Is Before You Pick It, its  better that way")
 
 crop = st.selectbox("Select a Crop", list(CROP_PRICES.keys()))
 weight = st.number_input("Enter Weight (kg)", min_value=0.0, format="%.2f")
