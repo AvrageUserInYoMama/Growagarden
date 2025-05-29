@@ -49,7 +49,8 @@ PRICE_PER_KG = {
     "Pear": 20,
     "Pineapple": 750,
     "Peach": 90,
-    "Apple": 77,
+    "Apple": 77.5
+,
     "Grape": 3300,
     "Venus Fly Trap": 1324,
     "Mango": 510,
