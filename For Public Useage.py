@@ -28,7 +28,7 @@ CROP_PRICES = {
     "Watermelon": 1200,
     "Cactus": 3000,
     "Passionfruit": 8000,
-    "Pepper": 5000,
+    "Pepper": 525,
     "Starfruit": 7500,
     "Moonflower": 6000,
     "Moonglow": 9000,
