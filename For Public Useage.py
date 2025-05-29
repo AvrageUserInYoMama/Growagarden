@@ -96,7 +96,7 @@ STACKABLE_MUTATIONS = {
 }
 
 # Streamlit UI
-st.title("Grow a Garden Crop Calculator")
+
 
 crop = st.selectbox("Select a Crop", list(CROP_PRICES.keys()))
 weight = st.number_input("Enter Weight (kg)", min_value=0.0, format="%.2f")
