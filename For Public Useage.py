@@ -37,6 +37,43 @@ CROP_PRICES = {
     "Moon Melon": 15000,
 }
 
+# Price per kilogram for each crop
+PRICE_PER_KG = {
+    "Carrot": 5,
+    "Strawberry": 10,
+    "Blueberry": 8,
+    "Orange Tulip": 15,
+    "Tomato": 7,
+    "Corn": 6,
+    "Daffodil": 4,
+    "Raspberry": 12,
+    "Pear": 20,
+    "Pineapple": 25,
+    "Peach": 9,
+    "Apple": 3,
+    "Grape": 30,
+    "Venus Fly Trap": 40,
+    "Mango": 22,
+    "Dragon Fruit": 18,
+    "Cursed Fruit": 100,
+    "Soul Fruit": 35,
+    "Candy Blossom": 200,
+    "Lotus": 50,
+    "Durian": 15,
+    "Bamboo": 5,
+    "Coconut": 10,
+    "Pumpkin": 8,
+    "Watermelon": 12,
+    "Cactus": 20,
+    "Passionfruit": 15,
+    "Pepper": 10,
+    "Starfruit": 25,
+    "Moonflower": 20,
+    "Moonglow": 30,
+    "Blood Banana": 40,
+    "Moon Melon": 50,
+}
+
 # Mutation multipliers
 MUTATION_MULTIPLIERS = {
     "Wet": 2,
@@ -52,7 +89,7 @@ MUTATION_MULTIPLIERS = {
     "Rainbow": 50,
     "Celestial": 120,
     "Disco": 125,
-    "Twisted": 30,
+    "Overgrown": 1,
 }
 
 # Stackable mutation rules
@@ -64,6 +101,7 @@ STACKABLE_MUTATIONS = {
 st.title("Grow a Garden Crop Calculator")
 
 crop = st.selectbox("Select a Crop", list(CROP_PRICES.keys()))
+weight = st.number_input("Enter Weight (kg)", min_value=0.0, format="%.2f")
 selected_mutations = st.multiselect("Select Mutation(s)", list(MUTATION_MULTIPLIERS.keys()))
 
 # Apply stacked mutations (e.g. Wet + Chilled = Frozen)
@@ -79,9 +117,12 @@ final_multiplier = 0  # Initialize to 0 for adding mutation values
 for mutation in mutations_to_apply:
     final_multiplier += MUTATION_MULTIPLIERS.get(mutation, 0)  # Add the mutation value
 
-final_price = base_price * (1 + final_multiplier)  # Multiply the base price by the total mutation value
+# Calculate total value based on weight
+price_per_kg = PRICE_PER_KG.get(crop, 0)
+total_value = weight * price_per_kg * (1 + final_multiplier)  # Total value based on weight and mutations
 
-st.subheader(f"Final Price: ₵{final_price:,.2f}")
+st.subheader(f"Total Value: ₵{total_value:,.2f}")
+
 # Disclaimers and credits
 st.markdown("---")
 st.markdown("🔹 **Not Affiliated With _The Garden Game_ or its developers. This is a fan-made tool.**")
