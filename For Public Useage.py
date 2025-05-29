@@ -1,3 +1,4 @@
+import streamlit as st
 
 CROP_PRICES = {
     "Carrot": 20,
@@ -96,7 +97,7 @@ STACKABLE_MUTATIONS = {
 }
 
 # Streamlit UI
-
+st.title("Crop Calue Calculator")
 
 crop = st.selectbox("Select a Crop", list(CROP_PRICES.keys()))
 weight = st.number_input("Enter Weight (kg)", min_value=0.0, format="%.2f")
