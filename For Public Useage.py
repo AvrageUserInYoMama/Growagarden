@@ -43,14 +43,6 @@ CROP_PRICES = {
     "Moon Mango": 2277,
 }
 
-MUTATION_MULTIPLIERS = {
-    "Shiny": 2.5,
-    "Golden": 5,
-    "Mutated": 1.5,
-    "Legendary": 10,
-    "Rare": 3,
-}
-
 PRICE_PER_KG = {
     "Carrot": 100,
     "Strawberry": 80,
@@ -89,6 +81,14 @@ PRICE_PER_KG = {
     "Moon Mango": 2277,
 }
 
+MUTATION_MULTIPLIERS = {
+    "Shiny": 2.5,
+    "Golden": 5,
+    "Mutated": 1.5,
+    "Legendary": 10,
+    "Rare": 3,
+}
+
 # --- Helper functions ---
 
 def calculate_crop_value(crop: str, weight: float, mutations: List[str], use_weight: bool, custom_price: float = None) -> float:
@@ -117,7 +117,7 @@ def fair_trade_result(your_val: float, their_val: float) -> str:
     else:
         return "You Lose 😢"
 
-# --- Initialize session state ---
+# --- Session state initialization ---
 
 if "trades" not in st.session_state:
     st.session_state.trades = {}  # trade_code: {user, your_offer, their_offer, messages}
@@ -128,19 +128,56 @@ if "messages" not in st.session_state:
 if "current_trade_code" not in st.session_state:
     st.session_state.current_trade_code = None
 
-# --- Auto refresh chat and trade info every 3 seconds ---
+if "calculator_results" not in st.session_state:
+    st.session_state.calculator_results = None
+
+# --- Auto-refresh every 3 seconds for chat/trade update ---
 st_autorefresh(interval=3000, key="refresh")
 
 # --- UI ---
 
-st.title("🌱 Grow a Garden Trade Calculator")
+st.title("🌱 Grow a Garden Crop Calculator & Trade Platform")
 
 mode = st.radio("Choose Mode", ["Calculator Mode", "Trading Mode"], horizontal=True)
 
+# ----------------- Calculator Mode -----------------
+
 if mode == "Calculator Mode":
-    st.header("Calculator Mode")
-    # Place your calculator mode code here
-    st.info("Calculator Mode is not implemented in this snippet, please add your calculator code.")
+    st.header("🧮 Crop Calculator")
+
+    use_weight = st.radio("Calculate using:", ["Weight-based (kg)", "Base Price"], horizontal=True)
+    is_weight = use_weight == "Weight-based (kg)"
+
+    st.info("Add crops with their weight, mutations, and optionally custom price.")
+
+    crops_data = []
+    add_more = True
+    idx = 1
+    while add_more:
+        st.markdown(f"### Crop #{idx}")
+        crop = st.selectbox(f"Select Crop #{idx}", list(CROP_PRICES.keys()), key=f"calc_crop_{idx}")
+        weight = 0.0
+        if is_weight:
+            weight = st.number_input(f"Weight (kg) #{idx}", min_value=0.0, step=0.1, key=f"calc_weight_{idx}")
+        mutations = st.multiselect(f"Mutations #{idx}", list(MUTATION_MULTIPLIERS.keys()), key=f"calc_mutations_{idx}")
+        custom_price = st.number_input(f"Custom Price (₲) #{idx} (leave 0 to ignore)", min_value=0.0, step=0.1, key=f"calc_custom_price_{idx}")
+        custom_price = custom_price if custom_price > 0 else None
+
+        crops_data.append((crop, weight, mutations, custom_price))
+
+        add_more = st.checkbox("Add another crop?", value=False if idx >= 1 else True, key=f"calc_add_more_{idx}")
+        idx += 1
+        if not add_more:
+            break
+
+    if st.button("Calculate Total Value"):
+        total_value = summarize_trade(crops_data, is_weight)
+        st.session_state.calculator_results = total_value
+
+    if st.session_state.calculator_results is not None:
+        st.success(f"Total Crop Value: ₲{st.session_state.calculator_results:.2f}")
+
+# ----------------- Trading Mode -----------------
 
 elif mode == "Trading Mode":
     st.header("🤝 Trading Mode")
@@ -148,7 +185,7 @@ elif mode == "Trading Mode":
     col1, col2 = st.columns([3, 2])
 
     with col1:
-        st.subheader("Trade Setup & Your Offer")
+        st.subheader("Setup & Your Offer")
 
         username = st.text_input("Enter your Roblox Username", key="username")
 
@@ -157,7 +194,7 @@ elif mode == "Trading Mode":
         use_weight = st.radio("Calculation Method", ["Weight-based", "Base Price"], horizontal=True)
         is_weight = use_weight == "Weight-based"
 
-        # Show trade code and allow generation/joining
+        # Trade code generation & joining logic
         existing_code = st.session_state.current_trade_code
         joined = False
         if existing_code:
@@ -182,7 +219,11 @@ elif mode == "Trading Mode":
                 else:
                     st.error("Please enter your username before generating a trade code.")
         else:
-            st.info(f"Your Trade Code: **{existing_code}** (share this to let others join!)")
+            # Show trade code if no one joined yet
+            if not joined:
+                st.info(f"Your Trade Code: **{existing_code}** (share this code to let others join!)")
+            else:
+                st.success(f"Trade code {existing_code} - Someone joined!")
 
         join_code = st.text_input("Enter Trade Code to Join", key="join_code")
         if st.button("Join Trade"):
@@ -192,7 +233,6 @@ elif mode == "Trading Mode":
             else:
                 st.error("Invalid trade code!")
 
-        # Input offer helper function
         def input_offer(prefix):
             crops = []
             for i in range(3):
@@ -225,39 +265,4 @@ elif mode == "Trading Mode":
                     for i, (crop, weight, mutations, custom_price) in enumerate(their_offer):
                         st.markdown(f"**Crop {i+1}:** {crop}")
                         st.markdown(f"- Weight: {weight}")
-                        st.markdown(f"- Mutations: {', '.join(mutations) if mutations else 'None'}")
-                        if custom_price is not None:
-                            st.markdown(f"- Custom Price: ₲{custom_price}")
-                        else:
-                            st.markdown(f"- Base Price: ₲{CROP_PRICES.get(crop, 0)}")
-
-            # Show trade values and fairness
-            their_offer = st.session_state.trades[current_code].get("their_offer", [])
-            your_val = summarize_trade(st.session_state.trades[current_code]["your_offer"], is_weight)
-            their_val = summarize_trade(their_offer, is_weight)
-            result = fair_trade_result(your_val, their_val)
-
-            st.markdown(f"### ⚖️ Trade Result: {result}")
-            st.write(f"Your Offer Value: ₲{your_val:.2f}")
-            st.write(f"Their Offer Value: ₲{their_val:.2f}")
-
-            # Messaging system
-            st.subheader("💬 Trade Messaging")
-
-            if current_code not in st.session_state.messages:
-                st.session_state.messages[current_code] = []
-
-            # Display messages
-            for msg in st.session_state.messages[current_code]:
-                st.write(f"🗨️ {msg}")
-
-            new_msg = st.text_input("Send a message", key="new_msg")
-            if st.button("Send Message"):
-                if new_msg:
-                    st.session_state.messages[current_code].append(f"{username}: {new_msg}")
-                    # Refresh immediately to show new message
-                    st.experimental_rerun()
-
-        else:
-            st.info("Generate or join a trade to start.")
-
+                        st.markdown(f"- Mutations:
