@@ -5,7 +5,7 @@ st.set_page_config(page_title="Grow a Garden App", layout="wide")
 
 # Now import or define everything else
 # === Crop Values ===
-CROP_PRICES = {
+BASE_PRICES = {
     "Carrot": 30,
     "Strawberry": 90,
     "Blueberry": 40,
