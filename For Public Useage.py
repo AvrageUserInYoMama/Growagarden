@@ -41,7 +41,7 @@ init_db()
 CROP_PRICES = {
     "Carrot": 30, "Strawberry": 90, "Blueberry": 40, "Orange Tulip": 750,
     "Tomato": 80, "Corn": 100, "Daffodil": 60, "Raspberry": 1500,
-    "Pear": 2000, "Pineapple": 3000, "Peach": 100, "Apple": 375,
+    "Pear": 2000, "Pineapple": 3000, "Peach": 100, "Apple": 260,
     "Grape": 10000, "Venus Fly Trap": 15000, "Mango": 6500,
     "Dragon Fruit": 4750, "Cursed Fruit": 50000, "Soul Fruit": 10500,
     "Candy Blossom": 100000, "Lotus": 20000, "Durian": 4500,
