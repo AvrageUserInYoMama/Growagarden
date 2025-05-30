@@ -1,4 +1,6 @@
 import streamlit as st
+# === Page Configuration (must be first Streamlit command) ===
+st.set_page_config(page_title="Grow a Garden Trade Calculator", layout="wide")
 
 # === Crop Values ===
 CROP_PRICES = {
@@ -38,8 +40,7 @@ CROP_PRICES = {
     "Beanstalk": 18000,
     "Moon Mango": 36000,
 }
-# === Page Configuration (must be first Streamlit command) ===
-st.set_page_config(page_title="Grow a Garden Trade Calculator", layout="wide")
+
 
 # === Constants ===
 PRICE_PER_KG = {
