@@ -98,7 +98,6 @@ def calculate_value(crop, weight, mutations):
     return base * weight * multiplier
 
 # === UI ===
-st.set_page_config("Grow a Garden App", layout="wide")
 st.title("🌿 Grow a Garden - Calculator & Trading App")
 
 tabs = st.tabs(["📈 Calculator", "🔁 Trading", "📚 Values"])
