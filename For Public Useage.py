@@ -1,14 +1,13 @@
 
 import streamlit as st
-import sqlite3
+st.set_page_config(page_title="Grow a Garden Trade Tool", layout="wide")
+
 import time
+import sqlite3
 from PIL import Image
 import qrcode
 from io import BytesIO
-from streamlit_autorefresh import st_autorefresh
-
-# === Page Configuration (must be first Streamlit command) ===
-st.set_page_config(page_title="Grow a Garden Trade Calculator", layout="wide")
+# ... any other imports
 
 # === Constants ===
 PRICE_PER_KG = {
