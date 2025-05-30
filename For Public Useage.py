@@ -1,46 +1,10 @@
 import streamlit as st
+import uuid
 from streamlit_autorefresh import st_autorefresh
 
-# Define base prices for crops
-CROP_PRICES = {
-    "Carrot": 100,
-    "Strawberry": 80,
-    "Blueberry": 120,
-    "Orange Tulip": 17000,
-    "Tomato": 60,
-    "Corn": 76,
-    "Daffodil": 60,
-    "Raspberry": 60,
-    "Pear": 77,
-    "Pineapple": 750,
-    "Peach": 90,
-    "Apple": 77.57,
-    "Grape": 3300,
-    "Venus Fly Trap": 1324,
-    "Mango": 510,
-    "Dragon Fruit": 70,
-    "Cursed Fruit": 100,
-    "Soul Fruit": 77,
-    "Candy Blossom": 3900,
-    "Lotus": 435,
-    "Durian": 660,
-    "Bamboo": 1051,
-    "Coconut": 50,
-    "Pumpkin": 60,
-    "Watermelon": 80,
-    "Cactus": 1110,
-    "Passionfruit": 1400,
-    "Pepper": 1850,
-    "Starfruit": 5611,
-    "Moonflower": 4000,
-    "Moonglow": 3400,
-    "Blood Banana": 4600,
-    "Moon Melon": 130,
-    "Beanstalk": 2344,
-    "Moon Mango": 2277,
-}
+# --- Constants ---
 
-# Define price per kilogram for crops
+# Price per kilogram for each crop
 PRICE_PER_KG = {
     "Carrot": 100,
     "Strawberry": 80,
@@ -79,7 +43,7 @@ PRICE_PER_KG = {
     "Moon Mango": 2277,
 }
 
-# Define mutation multipliers
+# Mutation multipliers
 MUTATION_MULTIPLIERS = {
     "Wet": 2,
     "Chilled": 2,
@@ -97,77 +61,139 @@ MUTATION_MULTIPLIERS = {
     "Twisted": 30,
 }
 
-# Function to calculate the value of a crop
-def calculate_value(crop, weight, mutation, use_weight, custom_price=None):
-    if use_weight:
-        base_price = custom_price if custom_price is not None else PRICE_PER_KG.get(crop, 0)
-        total = weight * base_price
-    else:
-        base_price = custom_price if custom_price is not None else CROP_PRICES.get(crop, 0)
-        total = base_price
+# List of crops
+CROPS = list(PRICE_PER_KG.keys())
 
-    mutation_multiplier = MUTATION_MULTIPLIERS.get(mutation, 1)
-    return total * mutation_multiplier
+# --- Initialize Session State ---
 
-# Function to summarize trade offers
-def summarize_trade(offers, use_weight):
-    return sum(calculate_value(*offer, use_weight) for offer in offers)
+if "messages" not in st.session_state:
+    st.session_state.messages = []  # For chat messages in trade
 
-# Function to get offer input from user
-def get_offer_input(prefix):
-    offers = []
-    for i in range(3):
-        cols = st.columns([2, 1, 2, 1])
-        crop = cols[0].selectbox(f"{prefix} Crop {i+1}", list(CROP_PRICES.keys()), key=f"{prefix}_crop_{i}")
-        weight = cols[1].number_input("Weight", min_value=0.0, step=0.1, key=f"{prefix}_wt_{i}")
-        mut = cols[2].selectbox("Mutation", list(MUTATION_MULTIPLIERS.keys()), key=f"{prefix}_mut_{i}")
-        price = cols[3].number_input("Custom Price", min_value=0.0, step=0.1, key=f"{prefix}_price_{i}")
-        offers.append((crop, weight, mut, price if price > 0 else None))
-    return offers
+if "trades" not in st.session_state:
+    st.session_state.trades = {}  # Stores all trade sessions and their offers
 
-# Main application
-def main():
-    st.title("Grow a Garden - Crop Calculator and Trading App")
+if "current_trade_code" not in st.session_state:
+    st.session_state.current_trade_code = None  # Current trade session code
 
-    # Auto-refresh messages every 3 seconds
-    st_autorefresh(interval=3000, limit=None, key="auto_refresh")
 
-    # Mode selection
-    mode = st.sidebar.selectbox("Select Mode", ["Calculator Mode", "Trading Mode"])
+# --- Helper Functions ---
 
-    if mode == "Calculator Mode":
-        st.header("Crop Value Calculator")
-        use_weight = st.checkbox("Use weight-based values?", value=True)
-        crop = st.selectbox("Select Crop", list(CROP_PRICES.keys()))
-        weight = st.number_input("Enter Weight (kg)", min_value=0.0, step=0.1)
-        mutation = st.selectbox("Select Mutation", list(MUTATION_MULTIPLIERS.keys()))
-        custom_price = st.number_input("Enter Custom Price (optional)", min_value=0.0, step=0.1)
+def calculate_offer_value(crop, weight_kg, selected_mutations):
+    """Calculate the total value of the offer given crop, weight, and mutations."""
+    base_price = PRICE_PER_KG.get(crop, 0)
+    multiplier = 1
+    for m in selected_mutations:
+        multiplier *= MUTATION_MULTIPLIERS.get(m, 1)
+    total_value = base_price * weight_kg * multiplier
+    return total_value, multiplier
 
-        value = calculate_value(crop, weight, mutation, use_weight, custom_price if custom_price > 0 else None)
-        st.write(f"Total Value: {value:.2f}")
+def create_new_trade():
+    """Create a new trade session with a unique code."""
+    trade_code = str(uuid.uuid4())[:8]  # 8 char unique code
+    st.session_state.trades[trade_code] = {
+        "offers": [],  # list of dict offers
+        "messages": []
+    }
+    st.session_state.current_trade_code = trade_code
+    return trade_code
 
-    elif mode == "Trading Mode":
-        st.header("Trade Offers")
-        use_weight = st.checkbox("Use weight-based values?", value=True)
+def join_trade(trade_code):
+    """Join an existing trade if code exists."""
+    if trade_code in st.session_state.trades:
+        st.session_state.current_trade_code = trade_code
+        return True
+    return False
 
-        st.subheader("Your Offer")
-        your_offer = get_offer_input("your")
+def add_offer_to_trade(trade_code, offer):
+    """Add an offer dict to the trade's offers list."""
+    st.session_state.trades[trade_code]["offers"].append(offer)
 
-        st.subheader("Their Offer")
-        their_offer = get_offer_input("their")
+def add_message_to_trade(trade_code, message):
+    """Add a message string to the trade's messages list."""
+    st.session_state.trades[trade_code]["messages"].append(message)
 
-        your_val = summarize_trade(your_offer, use_weight)
-        their_val = summarize_trade(their_offer, use_weight)
+# --- UI ---
 
-        st.write(f"Your Offer Total Value: {your_val:.2f}")
-        st.write(f"Their Offer Total Value: {their_val:.2f}")
+st.title("🌱 Grow a Garden - Trade & Crop Calculator")
 
-        if your_val > their_val:
-            st.success("Your offer is more valuable.")
-        elif your_val < their_val:
-            st.warning("Their offer is more valuable.")
+# Section: Trade Management
+st.header("Trade Session")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("Create New Trade Session"):
+        code = create_new_trade()
+        st.success(f"Created new trade session with code: {code}")
+
+with col2:
+    join_code_input = st.text_input("Enter Trade Code to Join")
+    if st.button("Join Trade"):
+        if join_trade(join_code_input.strip()):
+            st.success(f"Joined trade session: {join_code_input.strip()}")
         else:
-            st.info("Both offers are equal in value.")
+            st.error("Trade code not found. Please check and try again.")
 
-if __name__ == "__main__":
-    main()
+current_trade_code = st.session_state.current_trade_code
+if current_trade_code:
+    st.info(f"Current Trade Code: **{current_trade_code}** - Share this code with your trading partner.")
+
+# If no trade session selected, ask to create/join first
+if not current_trade_code:
+    st.warning("Please create or join a trade session to continue.")
+    st.stop()
+
+# Section: Add Offer
+st.header("Add Your Offer")
+
+selected_crop = st.selectbox("Select Crop", CROPS)
+weight = st.number_input("Weight (kg)", min_value=0.0, step=0.1, format="%.2f")
+
+selected_mutations = st.multiselect(
+    "Select Mutations (multiple allowed)",
+    options=list(MUTATION_MULTIPLIERS.keys())
+)
+
+if st.button("Add Offer to Trade"):
+    if weight <= 0:
+        st.error("Please enter a valid weight greater than zero.")
+    else:
+        value, total_multiplier = calculate_offer_value(selected_crop, weight, selected_mutations)
+        offer = {
+            "crop": selected_crop,
+            "weight": weight,
+            "mutations": selected_mutations,
+            "multiplier": total_multiplier,
+            "value": value,
+        }
+        add_offer_to_trade(current_trade_code, offer)
+        st.success(f"Offer added: {selected_crop} ({weight} kg) with multiplier {total_multiplier}x worth {value:.2f}")
+
+# Section: View Current Offers
+st.header("Current Trade Offers")
+
+offers = st.session_state.trades[current_trade_code]["offers"]
+
+if offers:
+    for idx, offer in enumerate(offers):
+        st.markdown(f"**Offer {idx+1}:** {offer['crop']} — {offer['weight']} kg — Mutations: {', '.join(offer['mutations']) if offer['mutations'] else 'None'} — Multiplier: {offer['multiplier']}x — Value: {offer['value']:.2f}")
+else:
+    st.info("No offers added yet.")
+
+# Section: Messaging (with auto refresh every 3 seconds)
+st.header("Trade Chat")
+
+# Autorefresh messages every 3 seconds
+st_autorefresh(interval=3000, key="message_refresh")
+
+messages = st.session_state.trades[current_trade_code]["messages"]
+
+for msg in messages:
+    st.write(msg)
+
+new_message = st.text_input("Enter message")
+if st.button("Send Message"):
+    if new_message.strip():
+        add_message_to_trade(current_trade_code, new_message.strip())
+        st.experimental_rerun()
+
