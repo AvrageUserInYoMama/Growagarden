@@ -129,13 +129,16 @@ else:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Create Trade")
-        username = st.text_input("Your Roblox Username", key="creator_username")
+        st.subheader("Trade Setup & Your Offer")
+        use_custom = st.checkbox("Enable Custom Items", key="custom_items")
+
+        username = st.text_input("Enter your Roblox Username", key="username")
+
         if st.button("Generate Trade Code"):
-            if username:
+            if username.strip():
                 code = str(random.randint(100000, 999999999))
                 st.session_state.trades[code] = {
-                    "creator": username,
+                    "creator": username.strip(),
                     "joined": False,
                     "joiner": None,
                     "your_offer": [("", 0.0, []) for _ in range(3)],
@@ -143,13 +146,14 @@ else:
                     "messages": [],
                     "trade_type": trade_type,
                 }
-                st.session_state.messages[code] = []
                 st.session_state.current_code = code
                 st.success(f"Trade Code: {code}")
 
     with col2:
         st.subheader("Join Trade")
-        join_code = st.text_input("Enter Trade Code", key="join_code")
+
+        join_code = st.text_input("Enter Trade Code to Join", key="join_code")
+
         if st.button("Join Trade"):
             if join_code in st.session_state.trades:
                 st.session_state.trades[join_code]["joined"] = True
@@ -170,13 +174,15 @@ else:
     if not trade["joined"] and trade["trade_type"] == "2 People (Interact)":
         st.info("Waiting for someone to join this trade...")
 
-    # Auto-refresh every 3 seconds
+    # Auto-refresh every 3 seconds to update chat and trades
     now = time.time()
     if now - st.session_state.last_refresh > 3:
         st.session_state.last_refresh = now
-        st.experimental_rerun()
+        try:
+            st.experimental_rerun()
+        except AttributeError:
+            st.stop()
 
-    # Offers input area helper
     def trade_input_area(offers, editable=True, key_prefix="your"):
         new_offer = []
         for i in range(3):
@@ -185,29 +191,40 @@ else:
             weight_val = offers[i][1] if i < len(offers) else 0.0
             muts_val = offers[i][2] if i < len(offers) else []
             if editable:
-                crop = cols[0].selectbox(f"Crop {i+1}", list(PRICE_PER_KG.keys()), index=(list(PRICE_PER_KG.keys()).index(crop_val) if crop_val in PRICE_PER_KG else 0), key=f"{key_prefix}_crop_{i}")
-                weight = cols[1].number_input(f"Weight {i+1}", min_value=0.0, step=0.1, value=weight_val, key=f"{key_prefix}_weight_{i}")
-                mutations = cols[2].multiselect(f"Mutations {i+1}", list(MUTATION_MULTIPLIERS.keys()), default=muts_val, key=f"{key_prefix}_mut_{i}")
+                crop = cols[0].selectbox(f"Crop {i+1}", list(PRICE_PER_KG.keys()),
+                                         index=(list(PRICE_PER_KG.keys()).index(crop_val) if crop_val in PRICE_PER_KG else 0),
+                                         key=f"{key_prefix}_crop_{i}")
+                weight = cols[1].number_input(f"Weight {i+1}", min_value=0.0, step=0.1, value=weight_val,
+                                              key=f"{key_prefix}_weight_{i}")
+                mutations = cols[2].multiselect(f"Mutations {i+1}", list(MUTATION_MULTIPLIERS.keys()), default=muts_val,
+                                               key=f"{key_prefix}_mut_{i}")
             else:
                 crop = cols[0].text_input(f"Crop {i+1}", value=crop_val, disabled=True, key=f"{key_prefix}_crop_{i}")
-                weight = cols[1].number_input(f"Weight {i+1}", min_value=0.0, step=0.1, value=weight_val, disabled=True, key=f"{key_prefix}_weight_{i}")
-                mutations = muts_val
-                muts_str = ", ".join(mutations) if mutations else "None"
+                weight = cols[1].number_input(f"Weight {i+1}", min_value=0.0, step=0.1, value=weight_val, disabled=True,
+                                              key=f"{key_prefix}_weight_{i}")
+                muts_str = ", ".join(muts_val) if muts_val else "None"
                 cols[2].text_input(f"Mutations {i+1}", value=muts_str, disabled=True, key=f"{key_prefix}_mut_{i}")
+                mutations = muts_val
             new_offer.append((crop, weight, mutations))
         return new_offer
 
-    # Display offers
     if trade_type == "2 People (Interact)" and trade["joined"]:
         st.markdown("**Your Offer (Editable):**")
         trade["your_offer"] = trade_input_area(trade["your_offer"], editable=True, key_prefix="your")
 
         st.markdown("**Their Offer (Read-only):**")
         trade["their_offer"] = trade_input_area(trade["their_offer"], editable=False, key_prefix="their")
-
-    elif trade_type == "1 Person (View Only)":
+    else:
         st.markdown("**Your Offer (Read-only):**")
         trade["your_offer"] = trade_input_area(trade["your_offer"], editable=False, key_prefix="your")
 
         st.markdown("**Their Offer (Read-only):**")
-       
+        trade["their_offer"] = trade_input_area(trade["their_offer"], editable=False, key_prefix="their")
+
+    your_total = summarize_trade(trade["your_offer"])
+    their_total = summarize_trade(trade["their_offer"])
+
+    st.markdown(f"### Trade Summary:")
+    st.write(f"Your Offer Total Value: ₲{your_total:,.2f}")
+    st.write(f"Their Offer Total Value: ₲{their_total:,.2f}")
+    st.info(fair_trade_result(your_total, their_total))
