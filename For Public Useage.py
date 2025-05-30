@@ -1,7 +1,9 @@
 import streamlit as st
-# === Page Configuration (must be first Streamlit command) ===
-st.set_page_config(page_title="Grow a Garden Trade Calculator", layout="wide")
 
+# ✅ MUST BE FIRST
+st.set_page_config(page_title="Grow a Garden App", layout="wide")
+
+# Now import or define everything else
 # === Crop Values ===
 CROP_PRICES = {
     "Carrot": 30,
