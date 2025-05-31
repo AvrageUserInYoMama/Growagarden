@@ -86,7 +86,7 @@ PRICE_PER_KG = {
 MUTATION_MULTIPLIERS = {
     "Pollinated": 2, "Wet": 2, "Chilled": 2, "Chocolate": 2, "Moonlit": 2,
     "Bloodlit": 4, "Plasma": 5, "Frozen": 10, "Golden": 20, "Zombified": 25,
-    "Shocked": 50, "Rainbow": 50, "Celestial": 120, "Disco": 125, "Twisted": 32, "Voided": 350,
+    "Shocked": 50, "Rainbow": 50, "Celestial": 120, "Disco": 125, "Twisted": 30, "Pollinated": 32, "Voided": 350,
 }
 
 # === Helper ===
