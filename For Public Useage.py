@@ -54,21 +54,28 @@ MUTATION_MULTIPLIERS = {
 
 # Sort crop names for selectbox consistency
 SORTED_CROP_NAMES = sorted(list(BASE_PRICES.keys()))
+SORTED_MUTATION_NAMES = sorted(list(MUTATION_MULTIPLIERS.keys()))
 
 # === Helper ===
 def calculate_value(crop, units, mutations, calculation_mode):
     initial_value = 0
-    if calculation_mode == "Price per KG":
-        base_unit_price = PRICE_PER_KG.get(crop, 0)
-        # Ensure units is float for weight calculation
-        initial_value = base_unit_price * float(units)
-    elif calculation_mode == "Fixed Base Price per Item":
-        base_item_price = BASE_PRICES.get(crop, 0)
-         # Ensure units is int for quantity calculation
-        initial_value = base_item_price * int(units)
-    else:
-        st.error("Invalid calculation mode selected.")
+    try:
+        if calculation_mode == "Price per KG":
+            base_unit_price = PRICE_PER_KG.get(crop, 0)
+            # Ensure units is float for weight calculation
+            initial_value = base_unit_price * float(units)
+        elif calculation_mode == "Fixed Base Price per Item":
+            base_item_price = BASE_PRICES.get(crop, 0)
+             # Ensure units is int for quantity calculation
+            initial_value = base_item_price * int(units)
+        else:
+            # This case should ideally not be reached if UI logic is correct
+            st.error(f"Internal error: Invalid calculation mode '{calculation_mode}'.")
+            return 0
+    except ValueError:
+        st.error(f"Error: Could not convert units '{units}' to the required number type for {calculation_mode}.")
         return 0
+
 
     mutation_multiplier_total = 1
     for m in mutations:
@@ -82,6 +89,7 @@ st.title("🌿 Grow a Garden - Calculator & Trading App")
 tabs = st.tabs(["📈 Calculator", "🔁 Trading", "📚 Values"])
 
 # Initialize session state for radio button default indices if they don't exist
+# These store the *index* of the selected option (0 or 1)
 if 'calc_mode_main_idx' not in st.session_state:
     st.session_state.calc_mode_main_idx = 0  # Default to "Price per KG"
 if 'trade_a_mode_idx' not in st.session_state:
@@ -98,59 +106,54 @@ with tabs[0]:
     is_price_per_kg_available_calc = price_for_kg_value_calc > 0
 
     # Determine effective calculation mode and manage radio button state
+    radio_options_calc = ("Price per KG", "Fixed Base Price per Item")
     if is_price_per_kg_available_calc:
-        chosen_mode_option_calc = st.radio(
+        # Allow user to choose if Price per KG is available
+        chosen_mode_idx_calc = st.radio(
             "Select Calculation Mode:",
-            ("Price per KG", "Fixed Base Price per Item"),
-            index=st.session_state.calc_mode_main_idx,
+            options=radio_options_calc,
+            index=st.session_state.calc_mode_main_idx, # Use session state for persistence
             key="calc_mode_main_radio_selector"
         )
-        effective_calc_mode = chosen_mode_option_calc
-        st.session_state.calc_mode_main_idx = ("Price per KG", "Fixed Base Price per Item").index(chosen_mode_option_calc)
+        effective_calc_mode = radio_options_calc[chosen_mode_idx_calc]
+        st.session_state.calc_mode_main_idx = chosen_mode_idx_calc # Update session state
     else:
+        # Force "Fixed Base Price per Item" if Price per KG is 0 or N/A
         effective_calc_mode = "Fixed Base Price per Item"
-        st.info(f"'{crop_calc}' has a Price per KG of 0. Using 'Fixed Base Price per Item'.")
-        st.session_state.calc_mode_main_idx = 1 # Update session state to reflect forced mode
+        st.info(f"'{crop_calc}' has a Price per KG of 0 or is not defined. Using 'Fixed Base Price per Item'.")
+        st.session_state.calc_mode_main_idx = 1 # Update session state to reflect forced mode (index of "Fixed Base...")
 
     # Configure units input based on effective_calc_mode
-    units_label_calc = "Enter weight (kg)"
-    units_min_calc = 0.1
-    units_step_calc = 0.1
-    units_format_calc = "%.2f" # Allow more precision for weight
-    units_default_calc = 1.0
-    units_input_type_calc = float
-
     if effective_calc_mode == "Fixed Base Price per Item":
         units_label_calc = "Enter quantity (items)"
-        units_min_calc = 1.0
-        units_step_calc = 1.0
+        units_min_calc = 1      # int
+        units_step_calc = 1     # int
         units_format_calc = "%d"
-        units_input_type_calc = int
+        units_default_calc = 1  # int
+    else: # Price per KG
+        units_label_calc = "Enter weight (kg)"
+        units_min_calc = 0.01    # float, allow smaller weights
+        units_step_calc = 0.01   # float
+        units_format_calc = "%.2f"
+        units_default_calc = 1.0 # float
 
 
     units_calc = st.number_input(
         units_label_calc,
         min_value=units_min_calc,
-        value=units_input_type_calc(units_default_calc), # Cast default to expected type
+        value=units_default_calc, # Default value is now correctly typed
         step=units_step_calc,
         format=units_format_calc,
-        key=f"units_calc_input_{effective_calc_mode}" # Dynamic key to help remount on format change
+        key=f"units_calc_input_{effective_calc_mode.replace(' ', '_')}" # Dynamic key
     )
     mutations_calc = st.multiselect(
         "Mutations (multi-select)",
-        sorted(list(MUTATION_MULTIPLIERS.keys())),
+        SORTED_MUTATION_NAMES,
         key="mutations_calc"
     )
 
     if st.button("Calculate Value", key="btn_calc"):
-        # Ensure units_calc is of the correct type before passing
-        units_to_pass = units_calc
-        if effective_calc_mode == "Price per KG":
-             units_to_pass = float(units_calc)
-        else: # Fixed Base Price
-             units_to_pass = int(units_calc)
-
-        value = calculate_value(crop_calc, units_to_pass, mutations_calc, effective_calc_mode)
+        value = calculate_value(crop_calc, units_calc, mutations_calc, effective_calc_mode)
         st.success(f"Total Value: {value:,.2f} coins")
 
 
@@ -158,6 +161,7 @@ with tabs[0]:
 with tabs[1]:
     st.header("🔁 Trade Comparison")
     col1, col2 = st.columns(2)
+    radio_options_trade = ("Price per KG", "Fixed Base Price per Item")
 
     # --- Trader A ---
     with col1:
@@ -168,25 +172,27 @@ with tabs[1]:
         is_price_per_kg_available_a = price_for_kg_value_a > 0
 
         if is_price_per_kg_available_a:
-            chosen_mode_option_a = st.radio(
+            chosen_mode_idx_a = st.radio(
                 "Calculation Mode A:",
-                ("Price per KG", "Fixed Base Price per Item"),
+                options=radio_options_trade,
                 index=st.session_state.trade_a_mode_idx,
                 key="trade_a_mode_radio_selector"
             )
-            effective_mode_a = chosen_mode_option_a
-            st.session_state.trade_a_mode_idx = ("Price per KG", "Fixed Base Price per Item").index(chosen_mode_option_a)
+            effective_mode_a = radio_options_trade[chosen_mode_idx_a]
+            st.session_state.trade_a_mode_idx = chosen_mode_idx_a
         else:
             effective_mode_a = "Fixed Base Price per Item"
-            st.info(f"A: '{crop_a}' has Price/KG of 0. Using 'Fixed Base Price'.")
+            st.info(f"A: '{crop_a}' has Price/KG of 0 or N/A. Using 'Fixed Base Price'.")
             st.session_state.trade_a_mode_idx = 1
 
-        units_label_a, units_min_a, units_step_a, units_format_a, units_default_a, units_type_a = ("Weight A (kg)", 0.1, 0.1, "%.2f", 1.0, float)
-        if effective_mode_a == "Fixed Base Price per Item":
-            units_label_a, units_min_a, units_step_a, units_format_a, units_default_a, units_type_a = ("Quantity A (items)", 1.0, 1.0, "%d", 1.0, int)
 
-        units_a = st.number_input(units_label_a, min_value=units_min_a, value=units_type_a(units_default_a), step=units_step_a, format=units_format_a, key=f"units_a_input_{effective_mode_a}")
-        muts_a = st.multiselect("Mutations A", sorted(list(MUTATION_MULTIPLIERS.keys())), key="ma_select")
+        if effective_mode_a == "Fixed Base Price per Item":
+            units_label_a, units_min_a, units_step_a, units_format_a, units_default_a = ("Quantity A (items)", 1, 1, "%d", 1)
+        else: # Price per KG
+            units_label_a, units_min_a, units_step_a, units_format_a, units_default_a = ("Weight A (kg)", 0.01, 0.01, "%.2f", 1.0)
+
+        units_a = st.number_input(units_label_a, min_value=units_min_a, value=units_default_a, step=units_step_a, format=units_format_a, key=f"units_a_input_{effective_mode_a.replace(' ', '_')}")
+        muts_a = st.multiselect("Mutations A", SORTED_MUTATION_NAMES, key="ma_select")
 
     # --- Trader B ---
     with col2:
@@ -197,43 +203,44 @@ with tabs[1]:
         is_price_per_kg_available_b = price_for_kg_value_b > 0
 
         if is_price_per_kg_available_b:
-            chosen_mode_option_b = st.radio(
+            chosen_mode_idx_b = st.radio(
                 "Calculation Mode B:",
-                ("Price per KG", "Fixed Base Price per Item"),
+                options=radio_options_trade,
                 index=st.session_state.trade_b_mode_idx,
                 key="trade_b_mode_radio_selector"
             )
-            effective_mode_b = chosen_mode_option_b
-            st.session_state.trade_b_mode_idx = ("Price per KG", "Fixed Base Price per Item").index(chosen_mode_option_b)
+            effective_mode_b = radio_options_trade[chosen_mode_idx_b]
+            st.session_state.trade_b_mode_idx = chosen_mode_idx_b
         else:
             effective_mode_b = "Fixed Base Price per Item"
-            st.info(f"B: '{crop_b}' has Price/KG of 0. Using 'Fixed Base Price'.")
+            st.info(f"B: '{crop_b}' has Price/KG of 0 or N/A. Using 'Fixed Base Price'.")
             st.session_state.trade_b_mode_idx = 1
 
-        units_label_b, units_min_b, units_step_b, units_format_b, units_default_b, units_type_b = ("Weight B (kg)", 0.1, 0.1, "%.2f", 1.0, float)
-        if effective_mode_b == "Fixed Base Price per Item":
-            units_label_b, units_min_b, units_step_b, units_format_b, units_default_b, units_type_b = ("Quantity B (items)", 1.0, 1.0, "%d", 1.0, int)
 
-        units_b = st.number_input(units_label_b, min_value=units_min_b, value=units_type_b(units_default_b), step=units_step_b, format=units_format_b, key=f"units_b_input_{effective_mode_b}")
-        muts_b = st.multiselect("Mutations B", sorted(list(MUTATION_MULTIPLIERS.keys())), key="mb_select")
+        if effective_mode_b == "Fixed Base Price per Item":
+            units_label_b, units_min_b, units_step_b, units_format_b, units_default_b = ("Quantity B (items)", 1, 1, "%d", 1)
+        else: # Price per KG
+            units_label_b, units_min_b, units_step_b, units_format_b, units_default_b = ("Weight B (kg)", 0.01, 0.01, "%.2f", 1.0)
+
+        units_b = st.number_input(units_label_b, min_value=units_min_b, value=units_default_b, step=units_step_b, format=units_format_b, key=f"units_b_input_{effective_mode_b.replace(' ', '_')}")
+        muts_b = st.multiselect("Mutations B", SORTED_MUTATION_NAMES, key="mb_select")
 
 
     if st.button("Compare Trade", key="btn_compare"):
-        # Ensure units are correct type for calculation
-        units_a_to_pass = float(units_a) if effective_mode_a == "Price per KG" else int(units_a)
-        units_b_to_pass = float(units_b) if effective_mode_b == "Price per KG" else int(units_b)
-
-        val_a = calculate_value(crop_a, units_a_to_pass, muts_a, effective_mode_a)
-        val_b = calculate_value(crop_b, units_b_to_pass, muts_b, effective_mode_b)
+        val_a = calculate_value(crop_a, units_a, muts_a, effective_mode_a)
+        val_b = calculate_value(crop_b, units_b, muts_b, effective_mode_b)
 
         st.write(f"💰 Trader A Value: `{val_a:,.2f}` coins")
         st.write(f"💰 Trader B Value: `{val_b:,.2f}` coins")
 
         diff = abs(val_a - val_b)
-        threshold = max(val_a, val_b) * 0.1 if max(val_a, val_b) > 0 else 0
+        # Consider a threshold for fairness, e.g., 10% of the higher value
+        # Handle cases where one or both values might be zero to avoid division by zero
+        max_val = max(val_a, val_b)
+        threshold = max_val * 0.1 if max_val > 0 else 0
 
-        if val_a == val_b:
-            st.success("✅ Perfectly fair trade!")
+        if val_a == val_b: # Perfect match
+             st.success("✅ Perfectly fair trade!")
         elif diff <= threshold:
             st.success("✅ Seems like a fair trade!")
         else:
@@ -253,8 +260,8 @@ with tabs[2]:
     for k in all_crop_keys:
         data_for_df.append({
             "Crop": k,
-            "Base Price (per item)": BASE_PRICES.get(k, "N/A"),
-            "Price per KG": PRICE_PER_KG.get(k, "N/A")
+            "Base Price (per item)": BASE_PRICES.get(k, "N/A"), # Use .get for safety
+            "Price per KG": PRICE_PER_KG.get(k, "N/A")    # Use .get for safety
         })
     st.dataframe(data_for_df, use_container_width=True)
 
