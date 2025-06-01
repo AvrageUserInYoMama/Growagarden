@@ -72,7 +72,7 @@ BASE_PRICES = {
 
 # === Constants ===
 PRICE_PER_KG = {
-    "Carrot": 100,
+"Carrot": 100,
     "Strawberry": 80,
     "Blueberry": 120,
     "Orange Tulip": 17000,
@@ -107,6 +107,31 @@ PRICE_PER_KG = {
     "Moon Melon": 130,
     "Beanstalk": 2344,
     "Moon Mango": 5544,
+    "Mushroom": 0,
+    "Cacao": 0,
+    "Celestiberry": 0,
+    "Mint": 0,
+    "Nightshade": 0,
+    "Glowshroom": 0,
+    "Moon Blossom": 0,
+    "Cherry Blossom": 0,
+    "Banana": 0,
+    "Lemon": 0,
+    "Eggplant": 0,
+    "Cranberry": 0,
+    "Easter Egg": 0,
+    "Papaya": 0,
+    "Candy Sunflower": 0,
+    "Red Lollipop": 0,
+    "Chocolate Carrot": 0,
+    "Hive Fruit": 0,
+    "Sunflower": 0,
+    "Pink Lily": 0,
+    "Nectarine": 0,
+    "Purple Dahlia": 0,
+    "Lilac": 0,
+    "Rose": 0,
+    "Foxglove": 0
 }
 
 MUTATION_MULTIPLIERS = {
