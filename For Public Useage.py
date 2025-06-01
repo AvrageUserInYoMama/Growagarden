@@ -109,14 +109,14 @@ with tabs[0]:
     radio_options_calc = ("Price per KG", "Fixed Base Price per Item")
     if is_price_per_kg_available_calc:
         # Allow user to choose if Price per KG is available
-        chosen_mode_idx_calc = st.radio(
+        selected_option_calc = st.radio( # Renamed variable for clarity
             "Select Calculation Mode:",
             options=radio_options_calc,
             index=st.session_state.calc_mode_main_idx, # Use session state for persistence
             key="calc_mode_main_radio_selector"
         )
-        effective_calc_mode = radio_options_calc[chosen_mode_idx_calc]
-        st.session_state.calc_mode_main_idx = chosen_mode_idx_calc # Update session state
+        effective_calc_mode = selected_option_calc # st.radio returns the selected option's value
+        st.session_state.calc_mode_main_idx = radio_options_calc.index(selected_option_calc) # Store index of selected option
     else:
         # Force "Fixed Base Price per Item" if Price per KG is 0 or N/A
         effective_calc_mode = "Fixed Base Price per Item"
@@ -172,14 +172,14 @@ with tabs[1]:
         is_price_per_kg_available_a = price_for_kg_value_a > 0
 
         if is_price_per_kg_available_a:
-            chosen_mode_idx_a = st.radio(
+            selected_option_a = st.radio( # Renamed variable
                 "Calculation Mode A:",
                 options=radio_options_trade,
                 index=st.session_state.trade_a_mode_idx,
                 key="trade_a_mode_radio_selector"
             )
-            effective_mode_a = radio_options_trade[chosen_mode_idx_a]
-            st.session_state.trade_a_mode_idx = chosen_mode_idx_a
+            effective_mode_a = selected_option_a # Direct assignment
+            st.session_state.trade_a_mode_idx = radio_options_trade.index(selected_option_a) # Store index
         else:
             effective_mode_a = "Fixed Base Price per Item"
             st.info(f"A: '{crop_a}' has Price/KG of 0 or N/A. Using 'Fixed Base Price'.")
@@ -203,14 +203,14 @@ with tabs[1]:
         is_price_per_kg_available_b = price_for_kg_value_b > 0
 
         if is_price_per_kg_available_b:
-            chosen_mode_idx_b = st.radio(
+            selected_option_b = st.radio( # Renamed variable
                 "Calculation Mode B:",
                 options=radio_options_trade,
                 index=st.session_state.trade_b_mode_idx,
                 key="trade_b_mode_radio_selector"
             )
-            effective_mode_b = radio_options_trade[chosen_mode_idx_b]
-            st.session_state.trade_b_mode_idx = chosen_mode_idx_b
+            effective_mode_b = selected_option_b # Direct assignment
+            st.session_state.trade_b_mode_idx = radio_options_trade.index(selected_option_b) # Store index
         else:
             effective_mode_b = "Fixed Base Price per Item"
             st.info(f"B: '{crop_b}' has Price/KG of 0 or N/A. Using 'Fixed Base Price'.")
